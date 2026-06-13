@@ -1,0 +1,23 @@
+# Render.com deployment configuration
+# Commit this file to your repo — Render will detect it automatically.
+services:
+  - type: web
+    name: ngcobo-booking
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /api/services
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      # Fill these in the Render dashboard after first deploy:
+      # ADMIN_EMAIL, ADMIN_PASSWORD, SMTP_USER, SMTP_PASS, EMAIL_FROM,
+      # PRACTICE_NAME, PRACTICE_PHONE, PRACTICE_ADDRESS, PRACTICE_EMAIL,
+      # INFO_OFFICER_NAME, INFO_OFFICER_EMAIL,
+      # TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM (optional),
+      # GOOGLE_CALENDAR_ID, GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY (optional)
