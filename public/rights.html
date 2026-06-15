@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Data Rights – Nontobeko Ngcobo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gd:#0a4a38;--gm:#1D9E75;--gl:#E1F5EE;--tx:#1a1a1a;--mt:#6b7280;--bd:#e5e7eb;--bg:#faf9f7;--wh:#fff;--rd:#dc2626;--rdl:#fef2f2}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx)}
+header{background:var(--gd);padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+header a{color:rgba(255,255,255,.8);font-size:13px;text-decoration:none}
+header .brand{color:#fff;font-size:15px;font-weight:500}
+.container{max-width:700px;margin:0 auto;padding:40px 24px 80px}
+h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--gd);margin-bottom:8px}
+.subtitle{color:var(--mt);font-size:14px;margin-bottom:32px}
+.right-card{background:var(--wh);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden}
+.right-header{padding:18px 22px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid transparent}
+.right-header:hover{background:#f9fafb}
+.right-header.open{border-bottom-color:var(--bd)}
+.right-title{font-size:15px;font-weight:500;color:var(--gd);display:flex;align-items:center;gap:10px}
+.right-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:var(--gl);color:var(--gd)}
+.right-chevron{color:var(--mt);font-size:18px;transition:transform .2s}
+.right-chevron.open{transform:rotate(180deg)}
+.right-body{display:none;padding:20px 22px}
+.right-body.open{display:block}
+.right-desc{font-size:13px;color:var(--mt);line-height:1.7;margin-bottom:18px}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:13px;color:var(--mt);margin-bottom:5px}
+.form-field input,.form-field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:var(--wh);color:var(--tx)}
+.form-field input:focus,.form-field textarea:focus{border-color:var(--gm)}
+.form-field textarea{min-height:80px;resize:vertical}
+.submit-btn{padding:10px 22px;border:none;border-radius:8px;background:var(--gm);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.submit-btn:hover{background:var(--gd)}
+.submit-btn:disabled{background:#9ca3af;cursor:not-allowed}
+.result-box{margin-top:14px;padding:14px;border-radius:8px;font-size:13px;display:none}
+.result-box.success{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.result-box.error{background:var(--rdl);color:var(--rd);border:1px solid #fca5a5}
+.result-box.open{display:block}
+pre{white-space:pre-wrap;word-break:break-word;font-size:12px;font-family:'DM Sans',sans-serif;line-height:1.6}
+.info-note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;font-size:13px;color:#1e40af;margin-bottom:24px}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Nontobeko Ngcobo – Clinical Psychologist</span>
+  <a href="/">← Back to booking</a>
+</header>
+<div class="container">
+  <h1>My Data Rights</h1>
+  <p class="subtitle">Exercise your rights under the Protection of Personal Information Act (POPIA)</p>
+
+  <div class="info-note">
+    ℹ️ All requests are processed within <strong>30 days</strong> as required by POPIA Section 25. You will need to provide the email address you used when booking. Requests are logged for audit purposes.
+  </div>
+
+  <!-- Right 1: Access -->
+  <div class="right-card">
+    <div class="right-header" onclick="toggleRight(this)">
+      <div class="right-title">📋 Access my information <span class="right-badge">Section 23</span></div>
+      <span class="right-chevron">⌄</span>
+    </div>
+    <div class="right-body">
+      <p class="right-desc">Request a full report of all personal information we hold about you, including your appointment history and consent records.</p>
+      <div class="form-field"><label>Your email address</label><input type="email" id="access-email" placeholder="your@email.com"></div>
+      <button class="submit-btn" onclick="submitDSR('access')">Request my data</button>
+      <div class="result-box" id="access-result"></div>
+    </div>
+  </div>
+
+  <!-- Right 2: Correction -->
+  <div class="right-card">
+    <div class="right-header" onclick="toggleRight(this)">
+      <div class="right-title">✏️ Correct my information <span class="right-badge">Section 24</span></div>
+      <span class="right-chevron">⌄</span>
+    </div>
+    <div class="right-body">
+      <p class="right-desc">Request correction of inaccurate or incomplete personal information we hold about you.</p>
+      <div class="form-field"><label>Your email address</label><input type="email" id="correct-email" placeholder="your@email.com"></div>
+      <div class="form-field"><label>New full name (leave blank to keep unchanged)</label><input type="text" id="correct-name" placeholder="Your correct full name"></div>
+      <div class="form-field"><label>New mobile number (leave blank to keep unchanged)</label><input type="tel" id="correct-mobile" placeholder="+27 82 123 4567"></div>
+      <button class="submit-btn" onclick="submitDSR('correct')">Submit correction</button>
+      <div class="result-box" id="correct-result"></div>
+    </div>
+  </div>
+
+  <!-- Right 3: Deletion -->
+  <div class="right-card">
+    <div class="right-header" onclick="toggleRight(this)">
+      <div class="right-title">🗑️ Delete my information <span class="right-badge">Section 24(2)(b)</span></div>
+      <span class="right-chevron">⌄</span>
+    </div>
+    <div class="right-body">
+      <p class="right-desc">Request deletion of your personal information. In accordance with healthcare record-keeping obligations, appointment records will be <strong>anonymised</strong> (personal identifiers removed) rather than hard-deleted, so that booking audit records are preserved without identifying you.</p>
+      <div class="form-field"><label>Your email address</label><input type="email" id="delete-email" placeholder="your@email.com"></div>
+      <div class="form-field"><label>Type <strong>DELETE MY DATA</strong> to confirm</label><input type="text" id="delete-confirm" placeholder="DELETE MY DATA"></div>
+      <button class="submit-btn" onclick="submitDSR('delete')" style="background:#dc2626">Request deletion</button>
+      <div class="result-box" id="delete-result"></div>
+    </div>
+  </div>
+
+  <!-- Right 4: Withdraw consent -->
+  <div class="right-card">
+    <div class="right-header" onclick="toggleRight(this)">
+      <div class="right-title">🚫 Withdraw my consent <span class="right-badge">Section 11</span></div>
+      <span class="right-chevron">⌄</span>
+    </div>
+    <div class="right-body">
+      <p class="right-desc">Withdraw your consent for us to process your personal information. This will stop future appointment reminders. Note: existing confirmed appointments will still be honoured.</p>
+      <div class="form-field"><label>Your email address</label><input type="email" id="withdraw-email" placeholder="your@email.com"></div>
+      <button class="submit-btn" onclick="submitDSR('withdraw')" style="background:#d97706">Withdraw consent</button>
+      <div class="result-box" id="withdraw-result"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:28px;background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+    <div style="font-size:14px;font-weight:500;color:var(--gd);margin-bottom:10px">📞 Contact our Information Officer</div>
+    <p style="font-size:13px;color:var(--mt);line-height:1.8">
+      For any privacy concerns or if you wish to lodge a complaint:<br>
+      <strong>Information Officer:</strong> Nontobeko Ngcobo<br>
+      <strong>Email:</strong> nontobekorn@gmail.com<br>
+      <strong>Phone:</strong> 084 309 0111<br><br>
+      If you are not satisfied with our response, you may contact the <strong>Information Regulator of South Africa</strong>:<br>
+      <a href="https://www.justice.gov.za/inforeg/" target="_blank" style="color:var(--gm)">www.justice.gov.za/inforeg</a> · inforeg@justice.gov.za · 010 023 5207
+    </p>
+  </div>
+</div>
+
+<script>
+function toggleRight(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.right-chevron');
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.right-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.right-header').forEach(h => h.classList.remove('open'));
+  document.querySelectorAll('.right-chevron').forEach(c => c.classList.remove('open'));
+  if (!isOpen) { body.classList.add('open'); header.classList.add('open'); chevron.classList.add('open'); }
+}
+
+async function submitDSR(type) {
+  const resultEl = document.getElementById(type+'-result');
+  resultEl.className = 'result-box'; resultEl.textContent = '';
+
+  let email, body;
+
+  if (type === 'access') {
+    email = document.getElementById('access-email').value.trim();
+    if (!email) { showResult(type,'error','Please enter your email address.'); return; }
+    body = { email };
+    const btn = event.currentTarget; btn.disabled = true; btn.textContent = 'Requesting…';
+    try {
+      const r = await fetch('/api/dsr/access', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!r.ok) { showResult(type,'error', d.error); }
+      else { showResult(type,'success','<strong>Your data report:</strong><br><pre>'+JSON.stringify(d.data, null, 2)+'</pre>'); }
+    } catch { showResult(type,'error','Request failed. Please try again.'); }
+    btn.disabled=false; btn.textContent='Request my data';
+
+  } else if (type === 'correct') {
+    email = document.getElementById('correct-email').value.trim();
+    const name = document.getElementById('correct-name').value.trim();
+    const mobile = document.getElementById('correct-mobile').value.trim();
+    if (!email) { showResult(type,'error','Please enter your email address.'); return; }
+    const corrections = {};
+    if (name)   corrections.fullName = name;
+    if (mobile) corrections.mobile   = mobile;
+    if (!Object.keys(corrections).length) { showResult(type,'error','Please provide at least one correction.'); return; }
+    const btn = event.currentTarget; btn.disabled=true; btn.textContent='Submitting…';
+    try {
+      const r = await fetch('/api/dsr/correct', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, corrections }) });
+      const d = await r.json();
+      if (!r.ok) showResult(type,'error',d.error);
+      else showResult(type,'success','✓ Your information has been updated successfully.');
+    } catch { showResult(type,'error','Request failed. Please try again.'); }
+    btn.disabled=false; btn.textContent='Submit correction';
+
+  } else if (type === 'delete') {
+    email = document.getElementById('delete-email').value.trim();
+    const confirm = document.getElementById('delete-confirm').value.trim();
+    if (!email) { showResult(type,'error','Please enter your email address.'); return; }
+    if (confirm !== 'DELETE MY DATA') { showResult(type,'error','Please type DELETE MY DATA exactly to confirm.'); return; }
+    const btn = event.currentTarget; btn.disabled=true; btn.textContent='Processing…';
+    try {
+      const r = await fetch('/api/dsr/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, confirmDeletion: true }) });
+      const d = await r.json();
+      if (!r.ok) showResult(type,'error',d.error);
+      else showResult(type,'success','✓ '+d.message);
+    } catch { showResult(type,'error','Request failed. Please try again.'); }
+    btn.disabled=false; btn.textContent='Request deletion';
+
+  } else if (type === 'withdraw') {
+    email = document.getElementById('withdraw-email').value.trim();
+    if (!email) { showResult(type,'error','Please enter your email address.'); return; }
+    const btn = event.currentTarget; btn.disabled=true; btn.textContent='Processing…';
+    try {
+      const r = await fetch('/api/dsr/withdraw-consent', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+      const d = await r.json();
+      if (!r.ok) showResult(type,'error',d.error);
+      else showResult(type,'success','✓ '+d.message);
+    } catch { showResult(type,'error','Request failed. Please try again.'); }
+    btn.disabled=false; btn.textContent='Withdraw consent';
+  }
+}
+
+function showResult(type, cls, html) {
+  const el = document.getElementById(type+'-result');
+  el.className = 'result-box '+cls+' open';
+  el.innerHTML = html;
+}
+</script>
+</body>
+</html>

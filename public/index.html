@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book an Appointment – Nontobeko Ngcobo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gd:#0a4a38;--gm:#1D9E75;--gl:#E1F5EE;--gp:#f0faf6;
+  --tx:#1a1a1a;--mt:#6b7280;--bd:#e5e7eb;--bg:#faf9f7;--wh:#fff;
+  --rd:#dc2626;--rdl:#fef2f2;--am:#d97706;--aml:#fffbeb;
+  --r:12px;--sh:0 4px 24px rgba(0,0,0,.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+.site-header{background:var(--gd);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-av{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;color:#fff;font-size:15px}
+.brand-name{color:#fff;font-size:15px;font-weight:500}
+.brand-title{color:rgba(255,255,255,.65);font-size:12px}
+.header-links{display:flex;gap:16px}
+.header-links a{color:rgba(255,255,255,.75);font-size:13px;text-decoration:none}
+.header-links a:hover{color:#fff}
+.container{max-width:660px;margin:0 auto;padding:40px 20px 80px}
+.hero{text-align:center;margin-bottom:36px}
+.hero h1{font-family:'Playfair Display',serif;font-size:30px;font-weight:400;color:var(--gd);margin-bottom:10px}
+.hero p{color:var(--mt);font-size:14px;line-height:1.7}
+
+/* Steps */
+.steps{display:flex;align-items:center;margin-bottom:32px}
+.si{display:flex;align-items:center;flex:1}
+.sc{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;transition:all .3s;border:2px solid var(--bd);background:var(--wh);color:var(--mt)}
+.sc.active{border-color:var(--gm);background:var(--gm);color:#fff}
+.sc.done{border-color:var(--gm);background:var(--gl);color:var(--gd)}
+.sl{font-size:11px;color:var(--mt);white-space:nowrap;margin-left:6px;display:none}
+@media(min-width:480px){.sl{display:block}}
+.sl.active{color:var(--gd);font-weight:500}
+.sline{flex:1;height:2px;background:var(--bd);margin:0 6px;transition:background .3s}
+.sline.done{background:var(--gm)}
+
+/* Card */
+.card{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);padding:28px;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;color:var(--gd);margin-bottom:6px}
+.card-sub{font-size:13px;color:var(--mt);margin-bottom:22px;line-height:1.6}
+
+/* Service grid */
+.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.svc-card{border:1.5px solid var(--bd);border-radius:10px;padding:12px;cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:9px}
+.svc-card:hover{border-color:var(--gm);background:var(--gp)}
+.svc-card.sel{border-color:var(--gm);background:var(--gl)}
+.svc-card.wide{grid-column:span 2}
+.svc-icon{width:32px;height:32px;border-radius:7px;flex-shrink:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;transition:background .18s}
+.svc-card.sel .svc-icon{background:var(--gm)}
+.svc-nm{font-size:13px;font-weight:500;color:var(--tx);line-height:1.3}
+.svc-ds{font-size:12px;color:var(--mt);margin-top:2px}
+
+/* Mode buttons */
+.mode-row{display:flex;gap:10px;margin-bottom:6px}
+.mode-btn{flex:1;border:1.5px solid var(--bd);border-radius:10px;padding:11px 8px;text-align:center;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;background:transparent;color:var(--mt);transition:all .18s}
+.mode-btn:hover{border-color:var(--gm);color:var(--gd)}
+.mode-btn.sel{border-color:var(--gm);background:var(--gl);color:var(--gd);font-weight:500}
+
+/* Calendar */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav button{background:none;border:none;cursor:pointer;font-size:20px;color:var(--mt);padding:4px 8px;border-radius:6px}
+.cal-nav button:hover{background:var(--bg)}
+.cal-ml{font-size:14px;font-weight:500}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal-hd{font-size:11px;color:var(--mt);padding:3px 0 7px}
+.cal-day{height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:background .12s}
+.cal-day:hover:not(.past):not(.empty){background:var(--gl)}
+.cal-day.today{color:var(--gm);font-weight:600}
+.cal-day.sel{background:var(--gm);color:#fff}
+.cal-day.past,.cal-day.empty{color:#d1d5db;cursor:default}
+
+/* Time slots */
+.time-hd{font-size:13px;font-weight:500;color:var(--tx);margin:18px 0 10px}
+.time-grid{display:flex;flex-wrap:wrap;gap:8px}
+.time-btn{border:1.5px solid var(--bd);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;background:transparent;color:var(--tx);transition:all .12s;font-family:'DM Sans',sans-serif}
+.time-btn:hover{border-color:var(--gm)}
+.time-btn.sel{border-color:var(--gm);background:var(--gl);color:var(--gd);font-weight:500}
+.no-slots{color:var(--mt);font-size:13px;padding:10px 0}
+
+/* Form */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;color:var(--mt);margin-bottom:5px}
+.field label .req{color:var(--rd)}
+.field input,.field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--tx);background:var(--wh);transition:border-color .15s;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--gm);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.field textarea{resize:vertical;min-height:76px}
+.ferr{font-size:12px;color:var(--rd);margin-top:4px;min-height:16px}
+
+/* POPIA consent blocks */
+.popia-section{background:var(--gp);border:1px solid #b7dfd1;border-radius:10px;padding:18px;margin-bottom:12px}
+.popia-section.required-consent{border-color:#0a4a38}
+.popia-section.optional-consent{border-color:#9ca3af;background:#f9fafb}
+.popia-hd{font-size:13px;font-weight:500;color:var(--gd);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.popia-hd.opt-hd{color:var(--mt)}
+.popia-badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;background:#dcfce7;color:#166534}
+.popia-badge.opt{background:#f3f4f6;color:#6b7280}
+.popia-body{font-size:12px;color:#374151;line-height:1.7;margin-bottom:12px}
+.popia-body strong{color:var(--gd)}
+.popia-check{display:flex;gap:9px;cursor:pointer;align-items:flex-start}
+.popia-check input[type=checkbox]{margin-top:2px;flex-shrink:0;accent-color:var(--gm);width:15px;height:15px}
+.popia-check span{font-size:13px;color:var(--tx);line-height:1.5}
+.popia-link{color:var(--gm);text-decoration:none;font-size:12px}
+.popia-link:hover{text-decoration:underline}
+
+/* Buttons */
+.btn-row{display:flex;gap:10px;margin-top:22px}
+.btn{flex:1;padding:12px;border-radius:9px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;border:none}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--gm);color:#fff}
+.btn-primary:hover{background:var(--gd)}
+.btn-primary:disabled{background:#9ca3af;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1.5px solid var(--bd);color:var(--mt)}
+.btn-ghost:hover{border-color:var(--gm);color:var(--gd)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Confirmation */
+.conf-icon{width:60px;height:60px;border-radius:50%;background:var(--gm);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:26px;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.conf-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:400;color:var(--gd);text-align:center;margin-bottom:6px}
+.conf-sub{text-align:center;color:var(--mt);font-size:14px;margin-bottom:24px}
+.conf-box{background:var(--bg);border-radius:10px;padding:18px;margin-bottom:16px}
+.conf-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.conf-row:last-child{border:none}
+.conf-row .lbl{color:var(--mt)}
+.conf-row .val{font-weight:500;text-align:right;max-width:58%}
+.note-box{background:var(--aml);border:1px solid #fde68a;border-radius:9px;padding:13px 15px;font-size:13px;color:#92400e}
+.rights-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:13px 15px;font-size:12px;color:#1e40af;margin-top:10px;line-height:1.7}
+
+@media(max-width:480px){
+  .card{padding:20px 16px}
+  .svc-grid{grid-template-columns:1fr}
+  .svc-card.wide{grid-column:span 1}
+  .hero h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-av">NN</div>
+    <div>
+      <div class="brand-name">Nontobeko Ngcobo</div>
+      <div class="brand-title">Clinical Psychologist</div>
+    </div>
+  </div>
+  <div class="header-links">
+    <a href="/privacy.html">Privacy Notice</a>
+    <a href="/rights.html">My Rights</a>
+    <a href="tel:0843090111">📞 084 309 0111</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <h1>Book an Appointment</h1>
+    <p>Confidential, professional therapy in a safe and supportive space.<br>
+    Belhar, Cape Town · In-person &amp; virtual sessions available.</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps" id="steps">
+    <div class="si"><div class="sc active" id="sc1">1</div><span class="sl active" id="sl1">Service</span></div>
+    <div class="sline" id="ln1"></div>
+    <div class="si"><div class="sc" id="sc2">2</div><span class="sl" id="sl2">Date &amp; Time</span></div>
+    <div class="sline" id="ln2"></div>
+    <div class="si"><div class="sc" id="sc3">3</div><span class="sl" id="sl3">Your Details</span></div>
+    <div class="sline" id="ln3"></div>
+    <div class="si"><div class="sc" id="sc4">4</div><span class="sl" id="sl4">Confirm</span></div>
+  </div>
+
+  <!-- STEP 1: Service -->
+  <div class="card" id="page1">
+    <div class="card-title">Choose your service</div>
+    <div class="card-sub">Select the type of therapy session you would like to book. All sessions are completely confidential.</div>
+    <div class="svc-grid">
+      <div class="svc-card" data-svc="Individual therapy" onclick="selectSvc(this)">
+        <div class="svc-icon">🧍</div>
+        <div><div class="svc-nm">Individual therapy</div><div class="svc-ds">One-on-one sessions</div></div>
+      </div>
+      <div class="svc-card" data-svc="Family therapy" onclick="selectSvc(this)">
+        <div class="svc-icon">👨‍👩‍👧</div>
+        <div><div class="svc-nm">Family therapy</div><div class="svc-ds">Multi-member sessions</div></div>
+      </div>
+      <div class="svc-card" data-svc="Stress and burnout management" onclick="selectSvc(this)">
+        <div class="svc-icon">🔥</div>
+        <div><div class="svc-nm">Stress &amp; burnout</div><div class="svc-ds">Recovery management</div></div>
+      </div>
+      <div class="svc-card" data-svc="Depression and anxiety management" onclick="selectSvc(this)">
+        <div class="svc-icon">💚</div>
+        <div><div class="svc-nm">Depression &amp; anxiety</div><div class="svc-ds">Ongoing management</div></div>
+      </div>
+      <div class="svc-card" data-svc="PTSD and trauma therapy" onclick="selectSvc(this)">
+        <div class="svc-icon">🛡️</div>
+        <div><div class="svc-nm">PTSD &amp; trauma therapy</div><div class="svc-ds">Trauma-focused care</div></div>
+      </div>
+      <div class="svc-card" data-svc="Substance abuse therapy" onclick="selectSvc(this)">
+        <div class="svc-icon">🌿</div>
+        <div><div class="svc-nm">Substance abuse</div><div class="svc-ds">Recovery support</div></div>
+      </div>
+      <div class="svc-card wide" data-svc="Integrated African-centered therapy" onclick="selectSvc(this)">
+        <div class="svc-icon">🌍</div>
+        <div><div class="svc-nm">Integrated African-centered therapy</div><div class="svc-ds">Culturally grounded holistic approach</div></div>
+      </div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div class="card-sub" style="margin-bottom:9px">Preferred session mode:</div>
+      <div class="mode-row">
+        <button class="mode-btn" id="mb-ip" onclick="selectMode('in-person',this)">🏥 In-person</button>
+        <button class="mode-btn" id="mb-vt" onclick="selectMode('virtual',this)">💻 Virtual session</button>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="toStep(2)">Continue →</button></div>
+  </div>
+
+  <!-- STEP 2: Date & Time -->
+  <div class="card" id="page2" style="display:none">
+    <div class="card-title">Choose a date &amp; time</div>
+    <div class="card-sub">Select an available appointment slot below.</div>
+    <div class="cal-nav">
+      <button onclick="prevMonth()">‹</button>
+      <span class="cal-ml" id="calLabel"></span>
+      <button onclick="nextMonth()">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid">
+      <div class="cal-hd">Su</div><div class="cal-hd">Mo</div><div class="cal-hd">Tu</div>
+      <div class="cal-hd">We</div><div class="cal-hd">Th</div><div class="cal-hd">Fr</div><div class="cal-hd">Sa</div>
+    </div>
+    <div id="timeSection" style="display:none">
+      <div class="time-hd">Available times for <span id="timeDateLabel" style="color:var(--gm)"></span></div>
+      <div class="time-grid" id="timeGrid"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="toStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="toStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Details + POPIA consent -->
+  <div class="card" id="page3" style="display:none">
+    <div class="card-title">Your details &amp; consent</div>
+    <div class="card-sub">Your information is protected under the <strong>Protection of Personal Information Act (POPIA)</strong>. Please read and accept the consents below before proceeding.</div>
+
+    <div class="field">
+      <label>Full name <span class="req">*</span></label>
+      <input type="text" id="f-name" placeholder="e.g. Thabo Nkosi" autocomplete="name">
+      <div class="ferr" id="err-name"></div>
+    </div>
+    <div class="field">
+      <label>Email address <span class="req">*</span></label>
+      <input type="email" id="f-email" placeholder="thabo@example.com" autocomplete="email">
+      <div class="ferr" id="err-email"></div>
+    </div>
+    <div class="field">
+      <label>Mobile number <span class="req">*</span></label>
+      <input type="tel" id="f-mobile" placeholder="+27 82 123 4567" autocomplete="tel">
+      <div class="ferr" id="err-mobile"></div>
+    </div>
+    <div class="field">
+      <label>Reason for visit <span style="color:var(--mt);font-weight:400">(optional)</span></label>
+      <textarea id="f-notes" placeholder="Briefly describe what you would like support with…"></textarea>
+    </div>
+
+    <div style="margin-top:20px;margin-bottom:6px">
+      <div style="font-size:13px;font-weight:500;color:var(--gd);margin-bottom:12px">🛡️ POPIA Consent — please read carefully</div>
+
+      <!-- Consent 1: Appointment booking — MANDATORY -->
+      <div class="popia-section required-consent">
+        <div class="popia-hd">Consent 1: Appointment booking <span class="popia-badge">Required</span></div>
+        <div class="popia-body">
+          I consent to <strong>Nontobeko Ngcobo</strong> collecting and processing my <strong>name, email address, and mobile number</strong> for the purpose of scheduling and managing my therapy appointments.<br><br>
+          Lawful basis: <strong>Section 11(1)(a) — Consent</strong> and <strong>Section 11(1)(b) — Performance of contract</strong>.<br>
+          Retention: My contact details will be retained for <strong>5 years</strong> from my last appointment, after which they will be anonymised.<br>
+          I understand I may request access, correction, or deletion of my information at any time via <a href="/rights.html" class="popia-link">My Rights</a>.
+        </div>
+        <label class="popia-check">
+          <input type="checkbox" id="c-appt">
+          <span>I have read and I consent to my contact information being processed for appointment booking purposes.</span>
+        </label>
+        <div class="ferr" id="err-consent-appt"></div>
+      </div>
+
+      <!-- Consent 2: Health data — MANDATORY (SPI) -->
+      <div class="popia-section required-consent">
+        <div class="popia-hd">Consent 2: Health information processing <span class="popia-badge">Required</span></div>
+        <div class="popia-body">
+          The service type I select and any notes I provide constitute <strong>Special Personal Information (health data)</strong> under <strong>Section 26 of POPIA</strong>. I give explicit consent for this health-related information to be processed solely for the purpose of delivering therapy services.<br><br>
+          This information is <strong>encrypted</strong> and will not be shared with any third party without my explicit consent, except as required by law.<br>
+          Retention: <strong>5 years</strong>, then anonymised.
+        </div>
+        <label class="popia-check">
+          <input type="checkbox" id="c-health">
+          <span>I explicitly consent to my health-related information (service type and clinical notes) being processed as required to provide therapy services.</span>
+        </label>
+        <div class="ferr" id="err-consent-health"></div>
+      </div>
+
+      <!-- Consent 3: Reminders — OPTIONAL -->
+      <div class="popia-section optional-consent">
+        <div class="popia-hd opt-hd">Consent 3: Appointment reminders <span class="popia-badge opt">Optional</span></div>
+        <div class="popia-body" style="color:var(--mt)">
+          I consent to receiving appointment reminders via <strong>email and WhatsApp</strong>, sent 24 hours and 2 hours before my appointment. I understand I can withdraw this consent at any time by contacting the practice.
+        </div>
+        <label class="popia-check">
+          <input type="checkbox" id="c-remind" checked>
+          <span>I consent to receiving appointment reminders by email and WhatsApp.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="toStep(2)">← Back</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitBooking()">Book appointment</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Confirmation -->
+  <div class="card" id="page4" style="display:none">
+    <div class="conf-icon">✓</div>
+    <div class="conf-title">Booking Confirmed!</div>
+    <div class="conf-sub">A confirmation has been sent to your email address.</div>
+    <div class="conf-box">
+      <div class="conf-row"><span class="lbl">Patient</span><span class="val" id="r-name">—</span></div>
+      <div class="conf-row"><span class="lbl">Service</span><span class="val" id="r-svc">—</span></div>
+      <div class="conf-row"><span class="lbl">Date &amp; time</span><span class="val" id="r-dt">—</span></div>
+      <div class="conf-row"><span class="lbl">Mode</span><span class="val" id="r-mode">—</span></div>
+      <div class="conf-row"><span class="lbl">Reference</span><span class="val" id="r-ref">—</span></div>
+    </div>
+    <div class="note-box">
+      🔔 You will receive a reminder 24 hours before your appointment (if you consented). To reschedule or cancel, please contact us at least 24 hours in advance on <strong>084 309 0111</strong> or <strong>nontobekorn@gmail.com</strong>.
+    </div>
+    <div class="rights-box">
+      🛡️ <strong>Your POPIA rights:</strong> You may access, correct, or request deletion of your personal information at any time. Visit <a href="/rights.html" style="color:#1d4ed8">My Rights</a> or contact our Information Officer at nontobekorn@gmail.com.
+    </div>
+    <div class="btn-row" style="margin-top:18px">
+      <button class="btn btn-ghost" onclick="resetForm()">← Book another appointment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const state = { svc:'', mode:'', date:'', dateLabel:'', startTime:'', endTime:'' };
+let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function toStep(n) {
+  if (n===2 && !state.svc)       { alert('Please select a service.'); return; }
+  if (n===2 && !state.mode)      { alert('Please select in-person or virtual.'); return; }
+  if (n===3 && !state.startTime) { alert('Please select a date and time slot.'); return; }
+  [1,2,3,4].forEach(i => {
+    document.getElementById('page'+i).style.display = i===n?'block':'none';
+    const c=document.getElementById('sc'+i), l=document.getElementById('sl'+i);
+    c.className='sc '+(i<n?'done':i===n?'active':'');
+    c.textContent=i<n?'✓':String(i);
+    l.className='sl'+(i===n?' active':'');
+    if(i<4) document.getElementById('ln'+i).className='sline'+(i<n?' done':'');
+  });
+  if(n===2) renderCal();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function selectSvc(el) {
+  document.querySelectorAll('.svc-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); state.svc=el.dataset.svc;
+}
+function selectMode(m,el) {
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); state.mode=m;
+}
+
+function renderCal() {
+  document.getElementById('calLabel').textContent=MONTHS[calMonth]+' '+calYear;
+  const grid=document.getElementById('calGrid');
+  while(grid.children.length>7) grid.removeChild(grid.lastChild);
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const t=new Date(), ty=t.getFullYear(), tm=t.getMonth(), td=t.getDate();
+  for(let i=0;i<first;i++){const d=document.createElement('div');d.className='cal-day empty';grid.appendChild(d);}
+  for(let d=1;d<=days;d++){
+    const el=document.createElement('div'); el.className='cal-day'; el.textContent=d;
+    const isPast=calYear<ty||(calYear===ty&&calMonth<tm)||(calYear===ty&&calMonth===tm&&d<td);
+    const isToday=calYear===ty&&calMonth===tm&&d===td;
+    if(isPast){el.classList.add('past');}
+    else{
+      if(isToday) el.classList.add('today');
+      const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      el.onclick=()=>selectDate(ds,d);
+      if(ds===state.date) el.classList.add('sel');
+    }
+    grid.appendChild(el);
+  }
+}
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+
+async function selectDate(dateStr,d){
+  state.date=dateStr; state.startTime=''; state.endTime='';
+  state.dateLabel=MONTHS[calMonth]+' '+d+', '+calYear;
+  document.querySelectorAll('.cal-day').forEach(c=>c.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+  document.getElementById('timeDateLabel').textContent=state.dateLabel;
+  const tg=document.getElementById('timeGrid');
+  tg.innerHTML='<span class="no-slots">Loading available slots…</span>';
+  document.getElementById('timeSection').style.display='block';
+  try{
+    const r=await fetch(`/api/availability?date=${dateStr}`);
+    const data=await r.json();
+    const slots=data.slots||[];
+    tg.innerHTML='';
+    if(!slots.length){tg.innerHTML='<span class="no-slots">No available slots for this date. Please try another day.</span>';return;}
+    slots.forEach(slot=>{
+      const b=document.createElement('button'); b.className='time-btn'; b.textContent=slot.display;
+      b.onclick=()=>{document.querySelectorAll('.time-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');state.startTime=slot.startTime;state.endTime=slot.endTime;};
+      tg.appendChild(b);
+    });
+  }catch{tg.innerHTML='<span class="no-slots">Could not load slots. Please check your connection.</span>';}
+}
+
+async function submitBooking(){
+  ['name','email','mobile','consent-appt','consent-health'].forEach(f=>document.getElementById('err-'+f).textContent='');
+  const name=document.getElementById('f-name').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  const mobile=document.getElementById('f-mobile').value.trim();
+  const notes=document.getElementById('f-notes').value.trim();
+  const cAppt=document.getElementById('c-appt').checked;
+  const cHealth=document.getElementById('c-health').checked;
+  const cRemind=document.getElementById('c-remind').checked;
+  let ok=true;
+  if(!name){document.getElementById('err-name').textContent='Full name is required.';ok=false;}
+  if(!email||!email.includes('@')){document.getElementById('err-email').textContent='Valid email address is required.';ok=false;}
+  if(!mobile){document.getElementById('err-mobile').textContent='Mobile number is required.';ok=false;}
+  if(!cAppt){document.getElementById('err-consent-appt').textContent='You must accept this consent to book an appointment.';ok=false;}
+  if(!cHealth){document.getElementById('err-consent-health').textContent='You must accept this consent to book a therapy session.';ok=false;}
+  if(!ok) return;
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Booking…';
+  try{
+    const res=await fetch('/api/appointments',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({patientName:name,patientEmail:email,patientMobile:mobile,
+        serviceType:state.svc,startTime:state.startTime,sessionMode:state.mode,
+        notes,consentAppointment:cAppt,consentHealthData:cHealth,consentReminders:cRemind}),
+    });
+    const data=await res.json();
+    if(!res.ok){
+      if(data.errors){
+        if(data.errors.patientName) document.getElementById('err-name').textContent=data.errors.patientName;
+        if(data.errors.patientEmail) document.getElementById('err-email').textContent=data.errors.patientEmail;
+        if(data.errors.patientMobile) document.getElementById('err-mobile').textContent=data.errors.patientMobile;
+      } else alert(data.error||'Booking failed. Please try again.');
+      btn.disabled=false; btn.textContent='Book appointment'; return;
+    }
+    const appt=data.appointment;
+    document.getElementById('r-name').textContent=name;
+    document.getElementById('r-svc').textContent=state.svc;
+    document.getElementById('r-dt').textContent=new Date(appt.startTime).toLocaleString('en-ZA',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('r-mode').textContent=state.mode==='virtual'?'Virtual session':'In-person – Simla Medical Centre, Belhar';
+    document.getElementById('r-ref').textContent=appt.id.slice(0,8).toUpperCase();
+    toStep(4);
+  }catch{alert('Network error. Please check your connection and try again.');btn.disabled=false;btn.textContent='Book appointment';}
+}
+
+function resetForm(){
+  Object.assign(state,{svc:'',mode:'',date:'',dateLabel:'',startTime:'',endTime:''});
+  document.querySelectorAll('.svc-card,.mode-btn').forEach(c=>c.classList.remove('sel'));
+  ['f-name','f-email','f-mobile','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-appt').checked=false;
+  document.getElementById('c-health').checked=false;
+  document.getElementById('c-remind').checked=true;
+  document.getElementById('submitBtn').disabled=false;
+  document.getElementById('submitBtn').textContent='Book appointment';
+  toStep(1);
+}
+renderCal();
+</script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin – Nontobeko Ngcobo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gd:#0a4a38;--gm:#1D9E75;--gl:#E1F5EE;--tx:#111827;--mt:#6b7280;--bd:#e5e7eb;--bg:#f9fafb;--wh:#fff;--rd:#dc2626;--rdl:#fef2f2;--am:#d97706;--aml:#fffbeb;--bl:#2563eb;--bll:#eff6ff;--sh:0 1px 4px rgba(0,0,0,.08);--r:10px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--gd)}
+.lc{background:var(--wh);border-radius:16px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.lc-logo{text-align:center;margin-bottom:28px}
+.lc-av{width:52px;height:52px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;color:var(--gd);margin:0 auto 12px}
+.lc-title{font-size:18px;font-weight:500}
+.lc-sub{font-size:13px;color:var(--mt);margin-top:3px}
+.lf{margin-bottom:15px}
+.lf label{display:block;font-size:13px;color:var(--mt);margin-bottom:5px}
+.lf input{width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;font-family:inherit;outline:none}
+.lf input:focus{border-color:var(--gm)}
+.lb{width:100%;padding:12px;border:none;border-radius:8px;background:var(--gm);color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.lb:hover{background:var(--gd)}
+#loginErr{color:var(--rd);font-size:13px;margin-top:10px;text-align:center}
+#app{display:none}
+.topbar{background:var(--wh);border-bottom:1px solid var(--bd);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50}
+.tb-brand{display:flex;align-items:center;gap:8px}
+.tb-dot{width:9px;height:9px;border-radius:50%;background:var(--gm)}
+.tb-name{font-size:15px;font-weight:500}
+.tb-right{display:flex;align-items:center;gap:16px}
+.tb-right a{font-size:13px;color:var(--mt);text-decoration:none;cursor:pointer}
+.tb-right a:hover{color:var(--gm)}
+.main{max-width:1120px;margin:0 auto;padding:24px 20px 60px}
+.tabs{display:flex;gap:2px;margin-bottom:22px;border-bottom:2px solid var(--bd)}
+.tab{padding:10px 18px;font-size:14px;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--mt);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab.active{color:var(--gm);border-bottom-color:var(--gm);font-weight:500}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--wh);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.stat .sl{font-size:12px;color:var(--mt);margin-bottom:5px}
+.stat .sv{font-size:24px;font-weight:500}
+.stat.green .sv{color:var(--gm)}
+.stat.amber .sv{color:var(--am)}
+.stat.blue .sv{color:var(--bl)}
+.stat.red .sv{color:var(--rd)}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px;align-items:center}
+.toolbar input,.toolbar select{padding:8px 11px;border:1px solid var(--bd);border-radius:8px;font-size:13px;font-family:inherit;background:var(--wh);color:var(--tx);outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--gm)}
+.toolbar input{flex:1;min-width:170px}
+.bsm{padding:7px 14px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--wh);color:var(--tx);transition:all .15s}
+.bsm:hover{border-color:var(--gm);color:var(--gm)}
+.bsm.green{background:var(--gm);color:#fff;border-color:var(--gm)}
+.bsm.green:hover{background:var(--gd)}
+.bsm.red{background:var(--rd);color:#fff;border-color:var(--rd)}
+.tw{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{background:#f3f4f6;padding:10px 13px;text-align:left;font-size:12px;font-weight:500;color:var(--mt);white-space:nowrap}
+tbody tr{border-top:1px solid var(--bd);transition:background .1s}
+tbody tr:hover{background:var(--bg)}
+tbody td{padding:11px 13px;font-size:13px}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge.confirmed{background:var(--gl);color:var(--gd)}
+.badge.cancelled{background:var(--rdl);color:var(--rd)}
+.badge.no-show{background:var(--aml);color:var(--am)}
+.badge.pending{background:var(--bll);color:var(--bl)}
+.ab{background:none;border:1px solid var(--bd);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;color:var(--mt);font-family:inherit;margin-left:3px;transition:all .12s}
+.ab:hover{border-color:var(--gm);color:var(--gm)}
+.ab.del:hover{border-color:var(--rd);color:var(--rd)}
+.pg-title{font-size:19px;font-weight:500;margin-bottom:4px}
+.pg-sub{font-size:13px;color:var(--mt);margin-bottom:20px}
+.empty{text-align:center;padding:40px;color:var(--mt);font-size:14px}
+.avail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.acard{background:var(--wh);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.acard .aday{font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.acard input[type=time]{padding:6px 8px;border:1px solid var(--bd);border-radius:6px;font-family:inherit;font-size:12px;margin:0 3px}
+.acard .aoff{font-size:12px;color:var(--mt)}
+.blocked-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btag{background:var(--rdl);border:1px solid #fca5a5;color:var(--rd);border-radius:20px;padding:5px 12px;font-size:12px;display:flex;align-items:center;gap:6px}
+.btag button{background:none;border:none;cursor:pointer;color:var(--rd);font-size:15px;padding:0;line-height:1}
+.audit-row{font-size:12px;padding:8px 14px;border-top:1px solid var(--bd);display:grid;grid-template-columns:140px 160px 1fr;gap:10px;align-items:start}
+.audit-row:first-child{border:none}
+.audit-row .at{color:var(--mt)}
+.audit-row .aa{font-weight:500;color:var(--gd)}
+.audit-row .ad{color:var(--tx)}
+.popia-stat{background:var(--wh);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:14px}
+.popia-stat h3{font-size:14px;font-weight:500;color:var(--gd);margin-bottom:12px}
+.pstat-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--bd)}
+.pstat-row:last-child{border:none}
+.pstat-row .pk{color:var(--mt)}
+.pstat-row .pv{font-weight:500}
+@media(max-width:640px){.main{padding:14px 12px}table{font-size:12px}.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="lc">
+    <div class="lc-logo">
+      <div class="lc-av">NN</div>
+      <div class="lc-title">Admin Portal</div>
+      <div class="lc-sub">Nontobeko Ngcobo – Clinical Psychologist</div>
+    </div>
+    <div class="lf"><label>Email address</label><input type="email" id="loginEmail" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="lf"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="lb" onclick="doLogin()">Sign in</button>
+    <div id="loginErr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="tb-brand"><div class="tb-dot"></div><span class="tb-name">Booking Admin</span></div>
+    <div class="tb-right">
+      <a href="/" target="_blank">Patient portal ↗</a>
+      <a href="/privacy.html" target="_blank">Privacy notice</a>
+      <a onclick="logout()">Sign out</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('appts',this)">Appointments</button>
+      <button class="tab" onclick="showTab('patients',this)">Patients</button>
+      <button class="tab" onclick="showTab('avail',this)">Availability</button>
+      <button class="tab" onclick="showTab('popia',this)">POPIA &amp; Audit</button>
+    </div>
+
+    <!-- Appointments -->
+    <div id="tab-appts">
+      <div class="pg-title">Appointments</div>
+      <div class="pg-sub">View, manage and export all bookings.</div>
+      <div class="stats" id="statsRow"></div>
+      <div class="toolbar">
+        <input type="text" id="aSearch" placeholder="Search patient name or email…" oninput="loadAppts()">
+        <input type="date" id="aDate" onchange="loadAppts()">
+        <select id="aStatus" onchange="loadAppts()">
+          <option value="">All statuses</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="no-show">No-show</option>
+        </select>
+        <button class="bsm" onclick="clearFilters()">Clear</button>
+        <button class="bsm green" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Ref</th><th>Patient</th><th>Service</th><th>Date &amp; Time</th><th>Mode</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="apptBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Patients -->
+    <div id="tab-patients" style="display:none">
+      <div class="pg-title">Patients</div>
+      <div class="pg-sub">Patient records — access is logged for POPIA compliance.</div>
+      <div class="toolbar">
+        <input type="text" id="ptSearch" placeholder="Search by name, email or mobile…" oninput="loadPatients()">
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Consent given</th><th>Registered</th><th>Actions</th></tr></thead>
+          <tbody id="ptBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Availability -->
+    <div id="tab-avail" style="display:none">
+      <div class="pg-title">Availability</div>
+      <div class="pg-sub">Set working hours and block unavailable dates.</div>
+      <div id="availForm"></div>
+      <div style="margin-top:26px">
+        <div class="pg-title" style="font-size:16px">Blocked dates</div>
+        <div style="display:flex;gap:9px;margin-top:11px;flex-wrap:wrap;align-items:center">
+          <input type="date" id="blockDate" style="padding:8px 11px;border:1px solid var(--bd);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+          <input type="text" id="blockReason" placeholder="Reason (e.g. Public holiday)" style="flex:1;padding:8px 11px;border:1px solid var(--bd);border-radius:8px;font-family:inherit;font-size:13px;outline:none">
+          <button class="bsm green" onclick="addBlock()">Block date</button>
+        </div>
+        <div class="blocked-list" id="blockedList"></div>
+      </div>
+    </div>
+
+    <!-- POPIA & Audit -->
+    <div id="tab-popia" style="display:none">
+      <div class="pg-title">POPIA Compliance &amp; Audit Log</div>
+      <div class="pg-sub">All data access and processing actions are recorded here in compliance with POPIA Section 19.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+        <div class="popia-stat">
+          <h3>🛡️ Compliance summary</h3>
+          <div id="popiaStats"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="popia-stat">
+          <h3>⚙️ Actions</h3>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <button class="bsm green" onclick="enforceRetention()" style="text-align:left">Run retention policy (anonymise records &gt;5 years)</button>
+            <button class="bsm" onclick="loadAuditLog()" style="text-align:left">Refresh audit log</button>
+            <button class="bsm" onclick="loadSecurityEvents()" style="text-align:left">View security events</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:14px;font-weight:500;margin-bottom:10px;color:var(--gd)">Audit log</div>
+      <div class="tw" id="auditLog" style="max-height:420px;overflow-y:auto"></div>
+
+      <div style="font-size:14px;font-weight:500;margin:20px 0 10px;color:var(--gd)">Security events</div>
+      <div class="tw" id="securityLog" style="max-height:260px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let token = localStorage.getItem('admin_token')||'';
+const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value;
+  const pass=document.getElementById('loginPass').value;
+  document.getElementById('loginErr').textContent='';
+  try{
+    const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){document.getElementById('loginErr').textContent=d.error;return;}
+    token=d.token; localStorage.setItem('admin_token',token); showApp();
+  }catch{document.getElementById('loginErr').textContent='Connection error. Is the server running?';}
+}
+function logout(){token='';localStorage.removeItem('admin_token');location.reload();}
+function showApp(){document.getElementById('loginScreen').style.display='none';document.getElementById('app').style.display='block';loadAppts();}
+if(token) showApp();
+
+async function api(method,path,body){
+  const h={'Content-Type':'application/json'};
+  if(token) h['Authorization']='Bearer '+token;
+  const r=await fetch(path,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  if(r.status===401){logout();return null;}
+  return r;
+}
+
+function showTab(name,el){
+  ['appts','patients','avail','popia'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(name==='patients') loadPatients();
+  if(name==='avail')    loadAvailability();
+  if(name==='popia')    loadPopiaDashboard();
+}
+
+// ── Appointments ──────────────────────────────────────────────────────────────
+async function loadAppts(){
+  const s=document.getElementById('aSearch').value;
+  const d=document.getElementById('aDate').value;
+  const st=document.getElementById('aStatus').value;
+  const p=new URLSearchParams();
+  if(s) p.set('search',s); if(d) p.set('date',d); if(st) p.set('status',st);
+  const r=await api('GET','/api/admin/appointments?'+p);
+  if(!r) return;
+  const data=await r.json();
+  renderAppts(data.appointments||[]);
+  renderStats(data.appointments||[]);
+}
+
+function renderStats(list){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('statsRow').innerHTML=`
+    <div class="stat green"><div class="sl">Total</div><div class="sv">${list.length}</div></div>
+    <div class="stat blue"><div class="sl">Today</div><div class="sv">${list.filter(a=>a.startTime?.startsWith(today)).length}</div></div>
+    <div class="stat green"><div class="sl">Confirmed</div><div class="sv">${list.filter(a=>a.status==='confirmed').length}</div></div>
+    <div class="stat red"><div class="sl">Cancelled</div><div class="sv">${list.filter(a=>a.status==='cancelled').length}</div></div>
+  `;
+}
+
+function renderAppts(list){
+  const tb=document.getElementById('apptBody');
+  if(!list.length){tb.innerHTML='<tr><td colspan="7" class="empty">No appointments found.</td></tr>';return;}
+  tb.innerHTML=list.map(a=>`
+    <tr>
+      <td style="font-family:monospace;font-size:12px;color:var(--mt)">${a.id?.slice(0,8).toUpperCase()}</td>
+      <td><div style="font-weight:500">${esc(a.patientName)}</div><div style="font-size:11px;color:var(--mt)">${esc(a.patientEmail)}</div></td>
+      <td style="max-width:150px;white-space:normal;font-size:12px">${esc(a.serviceType)}</td>
+      <td style="white-space:nowrap;font-size:12px">${fmtDT(a.startTime)}</td>
+      <td style="font-size:12px">${a.sessionMode==='virtual'?'💻 Virtual':'🏥 In-person'}</td>
+      <td><span class="badge ${a.status||'confirmed'}">${a.status||'confirmed'}</span></td>
+      <td style="white-space:nowrap">
+        ${a.status!=='cancelled'?`<button class="ab" onclick="setStatus('${a.id}','cancelled')">Cancel</button>`:''}
+        <button class="ab" onclick="setStatus('${a.id}','no-show')">No-show</button>
+        <button class="ab del" onclick="delAppt('${a.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function setStatus(id,status){
+  if(!confirm(`Mark as "${status}"?`)) return;
+  const r=await api('PATCH',`/api/admin/appointments/${id}`,{status});
+  if(r?.ok) loadAppts();
+}
+async function delAppt(id){
+  if(!confirm('Permanently delete this appointment?')) return;
+  const r=await api('DELETE',`/api/admin/appointments/${id}`);
+  if(r?.ok) loadAppts();
+}
+async function exportCSV(){
+  const d=document.getElementById('aDate').value;
+  const s=document.getElementById('aStatus').value;
+  const p=new URLSearchParams(); if(d) p.set('date',d); if(s) p.set('status',s);
+  const r=await api('GET','/api/admin/export?'+p);
+  if(!r) return;
+  const blob=await r.blob();
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob); link.download='appointments.csv'; link.click();
+}
+function clearFilters(){
+  document.getElementById('aSearch').value='';
+  document.getElementById('aDate').value='';
+  document.getElementById('aStatus').value='';
+  loadAppts();
+}
+
+// ── Patients ──────────────────────────────────────────────────────────────────
+async function loadPatients(){
+  const s=document.getElementById('ptSearch').value;
+  const r=await api('GET','/api/admin/patients?search='+encodeURIComponent(s));
+  if(!r) return;
+  const data=await r.json();
+  const tb=document.getElementById('ptBody');
+  const list=data.patients||[];
+  if(!list.length){tb.innerHTML='<tr><td colspan="6" class="empty">No patients found.</td></tr>';return;}
+  tb.innerHTML=list.map(p=>`
+    <tr>
+      <td style="font-weight:500">${esc(p.fullName)}</td>
+      <td>${esc(p.email)}</td>
+      <td>${esc(p.mobile)}</td>
+      <td>${p.consentGiven?'<span class="badge confirmed">✓ Given</span>':'<span class="badge cancelled">✗ Not recorded</span>'}</td>
+      <td style="color:var(--mt);font-size:12px">${p.createdAt?.split('T')[0]||'—'}</td>
+      <td><button class="ab" onclick="viewPatient('${p.id}')">View history</button></td>
+    </tr>`).join('');
+}
+
+async function viewPatient(id){
+  const r=await api('GET',`/api/admin/patients/${id}`);
+  if(!r) return;
+  const p=await r.json();
+  const hist=p.appointmentHistory||[];
+  alert(`Patient: ${p.fullName}\nEmail: ${p.email}\nMobile: ${p.mobile}\n\nAppointments (${hist.length}):\n${hist.map(a=>`• ${a.startTime?.split('T')[0]} – ${a.serviceType} [${a.status}]`).join('\n')||'None'}`);
+}
+
+// ── Availability ──────────────────────────────────────────────────────────────
+async function loadAvailability(){
+  const r=await api('GET','/api/admin/availability');
+  if(!r) return;
+  const data=await r.json();
+  renderAvailForm(data);
+  renderBlockedDates(data.blockedDates||[]);
+}
+
+function renderAvailForm(data){
+  const wh=data.workingHours||{};
+  document.getElementById('availForm').innerHTML=`
+    <div class="avail-grid">
+      ${[1,2,3,4,5,6,0].map(d=>{
+        const on=!!wh[d];
+        const s=wh[d]?.start||'08:00', e=wh[d]?.end||'17:00';
+        return `<div class="acard">
+          <div class="aday">
+            <input type="checkbox" id="don-${d}" ${on?'checked':''} onchange="toggleDay(${d})" style="accent-color:var(--gm)">
+            <span>${DAY_NAMES[d]}</span>
+          </div>
+          <div id="dhrs-${d}" style="${on?'':'display:none'}">
+            <input type="time" id="ds-${d}" value="${s}"> –
+            <input type="time" id="de-${d}" value="${e}">
+          </div>
+          ${!on?`<span class="aoff">Day off</span>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label style="font-size:13px;color:var(--mt)">Slot duration (minutes):</label>
+      <input type="number" id="slotDur" value="${data.slotDuration||60}" min="30" max="120" step="15"
+        style="width:76px;padding:7px 9px;border:1px solid var(--bd);border-radius:6px;font-family:inherit;font-size:13px">
+      <button class="bsm green" onclick="saveAvailability()">Save working hours</button>
+    </div>`;
+}
+
+function toggleDay(d){
+  const on=document.getElementById('don-'+d).checked;
+  document.getElementById('dhrs-'+d).style.display=on?'':'none';
+}
+
+async function saveAvailability(){
+  const wh={};
+  [0,1,2,3,4,5,6].forEach(d=>{
+    const cb=document.getElementById('don-'+d);
+    if(cb?.checked) wh[d]={start:document.getElementById('ds-'+d).value,end:document.getElementById('de-'+d).value};
+  });
+  const dur=parseInt(document.getElementById('slotDur').value,10);
+  const r=await api('PUT','/api/admin/availability',{workingHours:wh,slotDuration:dur});
+  if(r?.ok) alert('✓ Working hours saved.');
+}
+
+function renderBlockedDates(list){
+  const div=document.getElementById('blockedList');
+  if(!list.length){div.innerHTML='<span style="font-size:13px;color:var(--mt)">No blocked dates.</span>';return;}
+  div.innerHTML=list.map(b=>`
+    <span class="btag">📅 ${b.date}${b.reason?' – '+esc(b.reason):''}
+      <button onclick="removeBlock('${b.date}')">×</button>
+    </span>`).join('');
+}
+async function addBlock(){
+  const date=document.getElementById('blockDate').value;
+  const reason=document.getElementById('blockReason').value;
+  if(!date){alert('Please select a date.');return;}
+  const r=await api('POST','/api/admin/availability/block',{date,reason});
+  if(r?.ok){document.getElementById('blockDate').value='';document.getElementById('blockReason').value='';loadAvailability();}
+}
+async function removeBlock(date){
+  if(!confirm(`Remove block for ${date}?`)) return;
+  const r=await api('DELETE',`/api/admin/availability/block/${date}`);
+  if(r?.ok) loadAvailability();
+}
+
+// ── POPIA dashboard ───────────────────────────────────────────────────────────
+async function loadPopiaDashboard(){
+  loadAuditLog(); loadSecurityEvents();
+  const ra=await api('GET','/api/admin/appointments');
+  const rc=await api('GET','/api/admin/popia/consents');
+  if(!ra||!rc) return;
+  const appts=await ra.json();
+  const consents=await rc.json();
+  const list=appts.appointments||[];
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('popiaStats').innerHTML=`
+    <div class="pstat-row"><span class="pk">Total patients</span><span class="pv">${(await (await api('GET','/api/admin/patients')).json()).total||0}</span></div>
+    <div class="pstat-row"><span class="pk">Consent records</span><span class="pv">${(consents.consents||[]).length}</span></div>
+    <div class="pstat-row"><span class="pk">Active consents</span><span class="pv">${(consents.consents||[]).filter(c=>!c.withdrawn).length}</span></div>
+    <div class="pstat-row"><span class="pk">Withdrawn consents</span><span class="pv">${(consents.consents||[]).filter(c=>c.withdrawn).length}</span></div>
+    <div class="pstat-row"><span class="pk">Total appointments</span><span class="pv">${list.length}</span></div>
+    <div class="pstat-row"><span class="pk">Anonymised records</span><span class="pv">${list.filter(a=>a._anonymisedAt).length}</span></div>
+    <div class="pstat-row"><span class="pk">Encryption</span><span class="pv" style="color:var(--gm)">AES-256-GCM ✓</span></div>
+    <div class="pstat-row"><span class="pk">Retention policy</span><span class="pv">5 years</span></div>
+  `;
+}
+
+async function loadAuditLog(){
+  const r=await api('GET','/api/admin/audit-log');
+  if(!r) return;
+  const data=await r.json();
+  const logs=data.logs||[];
+  const div=document.getElementById('auditLog');
+  if(!logs.length){div.innerHTML='<div class="empty">No audit log entries.</div>';return;}
+  div.innerHTML=logs.slice(0,100).map(l=>`
+    <div class="audit-row">
+      <span class="at">${l.createdAt?.replace('T',' ').slice(0,19)||'—'}</span>
+      <span class="aa">${esc(l.action||'')}</span>
+      <span class="ad">${esc(l.detail||l.performedBy||'')}${l.ip?' · IP: '+esc(l.ip):''}</span>
+    </div>`).join('');
+}
+
+async function loadSecurityEvents(){
+  const r=await api('GET','/api/admin/security-events');
+  if(!r) return;
+  const data=await r.json();
+  const events=data.events||[];
+  const div=document.getElementById('securityLog');
+  if(!events.length){div.innerHTML='<div class="empty">No security events.</div>';return;}
+  div.innerHTML=events.slice(0,50).map(e=>`
+    <div class="audit-row">
+      <span class="at">${e.timestamp?.replace('T',' ').slice(0,19)||'—'}</span>
+      <span class="aa" style="color:var(--rd)">${esc(e.type||'')}</span>
+      <span class="ad">${esc(e.detail||'')}${e.ip?' · IP: '+esc(e.ip):''}</span>
+    </div>`).join('');
+}
+
+async function enforceRetention(){
+  if(!confirm('Run retention policy? This will anonymise all records older than 5 years.')) return;
+  const r=await api('POST','/api/admin/popia/enforce-retention');
+  if(r?.ok){const d=await r.json();alert(d.message);loadPopiaDashboard();}
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtDT(iso){
+  if(!iso) return '—';
+  return new Date(iso).toLocaleString('en-ZA',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy Notice – Nontobeko Ngcobo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gd:#0a4a38;--gm:#1D9E75;--gl:#E1F5EE;--tx:#1a1a1a;--mt:#6b7280;--bd:#e5e7eb;--bg:#faf9f7;--wh:#fff}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx)}
+header{background:var(--gd);padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+header a{color:rgba(255,255,255,.8);font-size:13px;text-decoration:none}
+header .brand{color:#fff;font-size:15px;font-weight:500}
+.container{max-width:740px;margin:0 auto;padding:40px 24px 80px}
+h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;color:var(--gd);margin-bottom:8px}
+.subtitle{color:var(--mt);font-size:14px;margin-bottom:32px}
+.section{background:var(--wh);border-radius:12px;padding:24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.section h2{font-size:16px;font-weight:500;color:var(--gd);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.section p,.section li{font-size:14px;color:#374151;line-height:1.8;margin-bottom:8px}
+.section ul{padding-left:18px}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:var(--gl);color:var(--gd);margin-left:6px}
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px;font-size:13px;color:#1e40af;margin-top:12px}
+.table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.table th{background:#f3f4f6;padding:9px 12px;text-align:left;font-weight:500;color:var(--mt)}
+.table td{padding:9px 12px;border-top:1px solid var(--bd);vertical-align:top}
+.back-btn{display:inline-block;padding:10px 20px;background:var(--gm);color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500;margin-top:24px}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Nontobeko Ngcobo – Clinical Psychologist</span>
+  <a href="/">← Back to booking</a>
+</header>
+<div class="container">
+  <h1>Privacy Notice</h1>
+  <p class="subtitle">In compliance with the Protection of Personal Information Act 4 of 2013 (POPIA) · Last updated: June 2026</p>
+
+  <div class="section">
+    <h2>1. Responsible Party (Section 1 &amp; 18)</h2>
+    <p><strong>Name:</strong> Nontobeko Ngcobo</p>
+    <p><strong>Practice:</strong> Simla Medical Centre, Belhar, Cape Town</p>
+    <p><strong>Email:</strong> nontobekorn@gmail.com</p>
+    <p><strong>Phone:</strong> 084 309 0111</p>
+    <p><strong>Information Officer:</strong> Nontobeko Ngcobo (registered with the Information Regulator as required by Section 55 of POPIA)</p>
+  </div>
+
+  <div class="section">
+    <h2>2. What information we collect &amp; why (Sections 9, 13, 18)</h2>
+    <table class="table">
+      <tr><th>Information</th><th>Purpose</th><th>Legal Basis</th><th>Retention</th></tr>
+      <tr><td>Name, email, mobile</td><td>Schedule and manage appointments</td><td>Consent (s.11(1)(a)) &amp; contract (s.11(1)(b))</td><td>5 years</td></tr>
+      <tr><td>Service type selected <span class="badge">Health data</span></td><td>Deliver appropriate therapy</td><td>Explicit consent for SPI (s.26(a))</td><td>5 years</td></tr>
+      <tr><td>Clinical notes <span class="badge">Health data</span></td><td>Record session context</td><td>Explicit consent for SPI (s.26(a))</td><td>5 years</td></tr>
+      <tr><td>Consent records</td><td>Audit trail of your consents</td><td>Legal obligation (s.11)</td><td>5 years</td></tr>
+      <tr><td>IP address &amp; user agent</td><td>Security logging only</td><td>Legitimate interest (s.11(1)(f))</td><td>90 days</td></tr>
+    </table>
+    <div class="info-box">⚠️ Your service type and clinical notes constitute <strong>Special Personal Information</strong> (health data) under Section 26 of POPIA and receive enhanced protection including AES-256 encryption at rest.</div>
+  </div>
+
+  <div class="section">
+    <h2>3. How we protect your information (Section 19)</h2>
+    <ul>
+      <li>All data transmitted over <strong>HTTPS/TLS encryption</strong></li>
+      <li>Health data (clinical notes) encrypted with <strong>AES-256-GCM</strong> at rest</li>
+      <li>Access to patient records restricted to the practitioner only</li>
+      <li>Login protected with <strong>JWT tokens</strong> and rate limiting (10 attempts per 15 minutes)</li>
+      <li>All data access actions recorded in a tamper-evident audit log</li>
+      <li>Failed login attempts logged as security events</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>4. Who we share your information with (Section 11(1)(e))</h2>
+    <p>We do <strong>not sell or share</strong> your personal information with any third party for marketing or commercial purposes.</p>
+    <p>Limited sharing only with:</p>
+    <ul>
+      <li><strong>Email service provider</strong> (SMTP/SendGrid) — to deliver appointment confirmations to you</li>
+      <li><strong>Twilio</strong> — to deliver WhatsApp reminders (only if you consented)</li>
+      <li><strong>Law enforcement or courts</strong> — only if legally compelled</li>
+    </ul>
+    <p>Your information is <strong>not transferred outside South Africa</strong>.</p>
+  </div>
+
+  <div class="section">
+    <h2>5. Retention &amp; anonymisation (Section 14)</h2>
+    <p>We retain your personal information for <strong>5 years</strong> from your last appointment. After this period, all personal identifiers are <strong>irreversibly anonymised</strong> automatically. Appointment records are kept in anonymous form for statistical purposes only.</p>
+  </div>
+
+  <div class="section">
+    <h2>6. Your rights as a data subject (Chapter 2, Part A)</h2>
+    <ul>
+      <li><strong>Section 23 — Right of access:</strong> Request a copy of all information we hold about you</li>
+      <li><strong>Section 24 — Right to correction:</strong> Request correction of inaccurate information</li>
+      <li><strong>Section 24(2)(b) — Right to deletion:</strong> Request deletion/anonymisation of your information</li>
+      <li><strong>Section 11 — Right to withdraw consent:</strong> Withdraw consent at any time (affects future processing only)</li>
+      <li><strong>Section 11(3) — Right to object:</strong> Object to processing where our legitimate interest is the basis</li>
+      <li><strong>Right to complain:</strong> Lodge a complaint with the Information Regulator</li>
+    </ul>
+    <p style="margin-top:12px">To exercise any of these rights, visit <a href="/rights.html" style="color:var(--gm)">My Rights</a> or email nontobekorn@gmail.com. We will respond within <strong>30 days</strong> as required by Section 25.</p>
+  </div>
+
+  <div class="section">
+    <h2>7. Information Regulator</h2>
+    <p>If you are not satisfied with how we handle your personal information, you have the right to lodge a complaint with the Information Regulator of South Africa:</p>
+    <p><strong>Website:</strong> <a href="https://www.justice.gov.za/inforeg/" style="color:var(--gm)" target="_blank">www.justice.gov.za/inforeg</a></p>
+    <p><strong>Email:</strong> inforeg@justice.gov.za</p>
+    <p><strong>Phone:</strong> 010 023 5207</p>
+  </div>
+
+  <a href="/" class="back-btn">← Back to booking</a>
+</div>
+</body>
+</html>
