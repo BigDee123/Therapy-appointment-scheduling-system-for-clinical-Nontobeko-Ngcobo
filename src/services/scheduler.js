@@ -1,3 +1,7 @@
+/**
+ * Reminder scheduler — checks every 60 seconds for due reminders.
+ * Now fully async with Supabase store.
+ */
 const store = require('../data/store');
 const { sendReminderEmail, sendReminderWhatsApp } = require('./notifications');
 
@@ -7,38 +11,43 @@ function start() {
   if (intervalId) return;
   console.log('[scheduler] Reminder scheduler started (checks every 60s)');
   intervalId = setInterval(runCheck, 60_000);
-  runCheck(); // immediate first run
+  runCheck();
 }
 
 async function runCheck() {
-  const now       = new Date();
-  const reminders = store.getReminders().filter(r => r.status === 'pending');
+  try {
+    const reminders = await store.getReminders();
+    const now       = new Date();
 
-  for (const reminder of reminders) {
-    const due = new Date(reminder.scheduledAt);
-    if (due > now) continue; // not yet
+    for (const reminder of reminders) {
+      if (new Date(reminder.scheduledAt) > now) continue;
 
-    const appt = store.getAppointmentById(reminder.appointmentId);
-    if (!appt || appt.status === 'cancelled') {
-      store.updateReminder(reminder.id, { status: 'skipped' });
-      continue;
-    }
-
-    try {
-      if (reminder.channel === 'email') {
-        await sendReminderEmail(appt, reminder.hoursAhead);
-      } else if (reminder.channel === 'whatsapp') {
-        await sendReminderWhatsApp(appt, reminder.hoursAhead);
+      const appt = await store.getAppointmentById(reminder.appointmentId);
+      if (!appt || appt.status === 'cancelled') {
+        await store.updateReminder(reminder.id, { status: 'skipped' });
+        continue;
       }
-      store.updateReminder(reminder.id, { status: 'sent', sentAt: new Date().toISOString() });
-    } catch (err) {
-      console.error(`[scheduler] Reminder ${reminder.id} failed:`, err.message);
-      store.updateReminder(reminder.id, { status: 'failed' });
+
+      try {
+        if (reminder.channel === 'email') {
+          await sendReminderEmail(appt, reminder.hoursAhead);
+        } else if (reminder.channel === 'whatsapp') {
+          await sendReminderWhatsApp(appt, reminder.hoursAhead);
+        }
+        await store.updateReminder(reminder.id, {
+          status: 'sent', sentAt: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error(`[scheduler] Reminder ${reminder.id} failed:`, err.message);
+        await store.updateReminder(reminder.id, { status: 'failed' });
+      }
     }
+  } catch (err) {
+    console.error('[scheduler] runCheck error:', err.message);
   }
 }
 
-function scheduleRemindersForAppointment(appt) {
+async function scheduleRemindersForAppointment(appt) {
   const { v4: uuidv4 } = require('uuid');
   const apptTime = new Date(appt.startTime).getTime();
   const now      = Date.now();
@@ -49,19 +58,23 @@ function scheduleRemindersForAppointment(appt) {
   ];
 
   for (const { hoursAhead, channels } of schedule) {
-    const scheduledAt = new Date(apptTime - hoursAhead * 3600_000);
-    if (scheduledAt.getTime() <= now) continue; // already past
+    const scheduledAt = new Date(apptTime - hoursAhead * 3_600_000);
+    if (scheduledAt.getTime() <= now) continue;
 
     for (const channel of channels) {
-      store.addReminder({
-        id:            uuidv4(),
-        appointmentId: appt.id,
-        channel,
-        hoursAhead,
-        scheduledAt:   scheduledAt.toISOString(),
-        status:        'pending',
-        createdAt:     new Date().toISOString(),
-      });
+      try {
+        await store.addReminder({
+          id:            uuidv4(),
+          appointmentId: appt.id,
+          channel,
+          hoursAhead,
+          scheduledAt:   scheduledAt.toISOString(),
+          status:        'pending',
+          createdAt:     new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error('[scheduler] addReminder failed:', err.message);
+      }
     }
   }
 }

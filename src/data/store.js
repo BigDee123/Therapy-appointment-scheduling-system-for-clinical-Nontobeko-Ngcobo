@@ -1,194 +1,322 @@
 /**
- * POPIA-compliant JSON datastore
- * Supports: consent records, audit logs, security events,
- * anonymisation, data subject requests, retention management.
+ * Persistent data store — backed by Supabase (PostgreSQL)
+ * Data survives server restarts and redeploys.
+ *
+ * Tables required in Supabase (run schema.sql once in Supabase SQL editor):
+ *   patients, appointments, consent_records, reminders, audit_logs, security_events, availability
  */
-const fs   = require('fs');
-const path = require('path');
+const db = require('./db');
 
-const DB_PATH = path.join(__dirname, 'db.json');
-
-const DEFAULTS = {
-  appointments:   [],
-  patients:       [],
-  consentRecords: [],
-  securityEvents: [],
-  auditLogs:      [],
-  availability: {
-    workingHours: {
-      1: { start: '08:00', end: '17:00' },
-      2: { start: '08:00', end: '17:00' },
-      3: { start: '08:00', end: '17:00' },
-      4: { start: '08:00', end: '17:00' },
-      5: { start: '08:00', end: '13:00' },
-    },
-    blockedDates:  [],
-    slotDuration:  60,
-  },
-  reminders: [],
-};
-
-function load() {
-  if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify(DEFAULTS, null, 2));
-    return JSON.parse(JSON.stringify(DEFAULTS));
+// ── helper: throw readable errors ────────────────────────────────────────────
+async function q(promise, label) {
+  const { data, error } = await promise;
+  if (error) {
+    console.error(`[store] ${label} error:`, error.message);
+    throw new Error(error.message);
   }
-  try { return JSON.parse(fs.readFileSync(DB_PATH, 'utf8')); }
-  catch { return JSON.parse(JSON.stringify(DEFAULTS)); }
+  return data;
 }
-function save(db) { fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2)); }
 
 const store = {
-  // ── Appointments ────────────────────────────────────────
-  getAppointments(filters = {}) {
-    const db = load();
-    let list = db.appointments;
-    if (filters.date)   list = list.filter(a => a.startTime?.startsWith(filters.date));
-    if (filters.status) list = list.filter(a => a.status === filters.status);
+
+  // ══ APPOINTMENTS ════════════════════════════════════════════════════════════
+
+  async getAppointments(filters = {}) {
+    let query = db.from('appointments').select('*');
+    if (filters.date)   query = query.like('start_time', `${filters.date}%`);
+    if (filters.status) query = query.eq('status', filters.status);
     if (filters.search) {
-      const q = filters.search.toLowerCase();
-      list = list.filter(a =>
-        a.patientName?.toLowerCase().includes(q) ||
-        a.patientEmail?.toLowerCase().includes(q)
+      query = query.or(
+        `patient_name.ilike.%${filters.search}%,patient_email.ilike.%${filters.search}%`
       );
     }
-    return list.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-  },
-  getAppointmentById(id) { return load().appointments.find(a => a.id === id) || null; },
-  createAppointment(appt) {
-    const db = load(); db.appointments.push(appt); save(db); return appt;
-  },
-  updateAppointment(id, updates) {
-    const db  = load();
-    const idx = db.appointments.findIndex(a => a.id === id);
-    if (idx === -1) return null;
-    db.appointments[idx] = { ...db.appointments[idx], ...updates, updatedAt: new Date().toISOString() };
-    save(db); return db.appointments[idx];
-  },
-  deleteAppointment(id) {
-    const db  = load();
-    const idx = db.appointments.findIndex(a => a.id === id);
-    if (idx === -1) return false;
-    db.appointments.splice(idx, 1); save(db); return true;
-  },
-  isSlotTaken(startTime, endTime, excludeId = null) {
-    const start = new Date(startTime), end = new Date(endTime);
-    return load().appointments.some(a => {
-      if (a.id === excludeId) return false;
-      if (['cancelled','no-show'].includes(a.status)) return false;
-      if (a._anonymisedAt) return false;
-      return start < new Date(a.endTime) && end > new Date(a.startTime);
-    });
+    const data = await q(query.order('start_time', { ascending: true }), 'getAppointments');
+    return (data || []).map(camelCase);
   },
 
-  // ── Patients ─────────────────────────────────────────────
-  getPatients(search = '') {
-    const db = load();
-    if (!search) return db.patients.filter(p => !p._anonymisedAt);
-    const q  = search.toLowerCase();
-    return db.patients.filter(p =>
-      !p._anonymisedAt && (
-        p.fullName?.toLowerCase().includes(q) ||
-        p.email?.toLowerCase().includes(q) ||
-        p.mobile?.includes(q)
-      )
+  async getAppointmentById(id) {
+    const data = await q(
+      db.from('appointments').select('*').eq('id', id).maybeSingle(),
+      'getAppointmentById'
+    );
+    return data ? camelCase(data) : null;
+  },
+
+  async createAppointment(appt) {
+    const row = snakeCase(appt);
+    const data = await q(
+      db.from('appointments').insert(row).select().single(),
+      'createAppointment'
+    );
+    return camelCase(data);
+  },
+
+  async updateAppointment(id, updates) {
+    const row = { ...snakeCase(updates), updated_at: new Date().toISOString() };
+    const data = await q(
+      db.from('appointments').update(row).eq('id', id).select().single(),
+      'updateAppointment'
+    );
+    return data ? camelCase(data) : null;
+  },
+
+  async deleteAppointment(id) {
+    await q(db.from('appointments').delete().eq('id', id), 'deleteAppointment');
+    return true;
+  },
+
+  async isSlotTaken(startTime, endTime, excludeId = null) {
+    let query = db.from('appointments')
+      .select('id')
+      .not('status', 'in', '("cancelled","no-show")')
+      .is('anonymised_at', null)
+      .lt('start_time', endTime)
+      .gt('end_time', startTime);
+    if (excludeId) query = query.neq('id', excludeId);
+    const data = await q(query, 'isSlotTaken');
+    return (data || []).length > 0;
+  },
+
+  // ══ PATIENTS ════════════════════════════════════════════════════════════════
+
+  async getPatients(search = '') {
+    let query = db.from('patients').select('*').is('anonymised_at', null);
+    if (search) {
+      query = query.or(
+        `full_name.ilike.%${search}%,email.ilike.%${search}%,mobile.ilike.%${search}%`
+      );
+    }
+    const data = await q(query.order('created_at', { ascending: false }), 'getPatients');
+    return (data || []).map(camelCase);
+  },
+
+  async getPatientById(id) {
+    const data = await q(
+      db.from('patients').select('*').eq('id', id).maybeSingle(),
+      'getPatientById'
+    );
+    return data ? camelCase(data) : null;
+  },
+
+  async upsertPatient(patient) {
+    const row = snakeCase(patient);
+    // Try to find existing by email
+    const existing = await q(
+      db.from('patients').select('*').eq('email', patient.email.toLowerCase()).maybeSingle(),
+      'upsertPatient-find'
+    );
+    if (existing) {
+      const updated = await q(
+        db.from('patients').update({ ...row, updated_at: new Date().toISOString() })
+          .eq('id', existing.id).select().single(),
+        'upsertPatient-update'
+      );
+      return camelCase(updated);
+    }
+    const created = await q(
+      db.from('patients').insert({ ...row, created_at: new Date().toISOString() })
+        .select().single(),
+      'upsertPatient-insert'
+    );
+    return camelCase(created);
+  },
+
+  async updatePatient(id, updates) {
+    const data = await q(
+      db.from('patients').update({ ...snakeCase(updates), updated_at: new Date().toISOString() })
+        .eq('id', id).select().single(),
+      'updatePatient'
+    );
+    return data ? camelCase(data) : null;
+  },
+
+  async anonymisePatient(id) {
+    await q(
+      db.from('patients').update({
+        full_name: '[anonymised]', email: '[anonymised]', mobile: '[anonymised]',
+        anonymised_at: new Date().toISOString(),
+      }).eq('id', id),
+      'anonymisePatient'
     );
   },
-  getPatientById(id) { return load().patients.find(p => p.id === id) || null; },
-  upsertPatient(data) {
-    const db = load();
-    let p    = db.patients.find(p => p.email?.toLowerCase() === data.email?.toLowerCase());
-    if (p) { Object.assign(p, { ...data, updatedAt: new Date().toISOString() }); }
-    else   { p = { ...data, createdAt: new Date().toISOString() }; db.patients.push(p); }
-    save(db); return p;
-  },
-  updatePatient(id, updates) {
-    const db  = load();
-    const idx = db.patients.findIndex(p => p.id === id);
-    if (idx === -1) return null;
-    db.patients[idx] = { ...db.patients[idx], ...updates, updatedAt: new Date().toISOString() };
-    save(db); return db.patients[idx];
-  },
-  anonymisePatient(id) {
-    const db  = load();
-    const idx = db.patients.findIndex(p => p.id === id);
-    if (idx === -1) return;
-    db.patients[idx] = {
-      id,
-      fullName:      '[anonymised]',
-      email:         '[anonymised]',
-      mobile:        '[anonymised]',
-      _anonymisedAt: new Date().toISOString(),
-      _popia:        'anonymised-per-retention-policy',
-    };
-    save(db);
+
+  // ══ CONSENT RECORDS ══════════════════════════════════════════════════════════
+
+  async getConsentRecords(patientId) {
+    const data = await q(
+      db.from('consent_records').select('*').eq('patient_id', patientId),
+      'getConsentRecords'
+    );
+    return (data || []).map(camelCase);
   },
 
-  // ── Consent records ──────────────────────────────────────
-  getConsentRecords(patientId) {
-    return load().consentRecords.filter(r => r.patientId === patientId);
-  },
-  getAllConsentRecords() { return load().consentRecords; },
-  addConsentRecord(record) {
-    const db = load(); db.consentRecords.push(record); save(db); return record;
-  },
-  updateConsentRecord(id, updates) {
-    const db  = load();
-    const idx = db.consentRecords.findIndex(r => r.id === id);
-    if (idx !== -1) { db.consentRecords[idx] = { ...db.consentRecords[idx], ...updates }; save(db); }
+  async getAllConsentRecords() {
+    const data = await q(
+      db.from('consent_records').select('*').order('given_at', { ascending: false }),
+      'getAllConsentRecords'
+    );
+    return (data || []).map(camelCase);
   },
 
-  // ── Availability ─────────────────────────────────────────
-  getAvailability() { return load().availability; },
-  updateAvailability(updates) {
-    const db = load();
-    db.availability = { ...db.availability, ...updates };
-    save(db); return db.availability;
+  async addConsentRecord(record) {
+    const data = await q(
+      db.from('consent_records').insert(snakeCase(record)).select().single(),
+      'addConsentRecord'
+    );
+    return camelCase(data);
   },
-  addBlockedDate(date, reason = '') {
-    const db = load();
-    if (!db.availability.blockedDates.find(b => b.date === date)) {
-      db.availability.blockedDates.push({ date, reason });
-      save(db);
+
+  async updateConsentRecord(id, updates) {
+    await q(
+      db.from('consent_records').update(snakeCase(updates)).eq('id', id),
+      'updateConsentRecord'
+    );
+  },
+
+  // ══ AVAILABILITY ════════════════════════════════════════════════════════════
+
+  async getAvailability() {
+    const data = await q(
+      db.from('availability').select('*').eq('id', 1).maybeSingle(),
+      'getAvailability'
+    );
+    if (!data) {
+      // Return default availability if not yet configured
+      return {
+        workingHours: {
+          1: { start: '08:00', end: '17:00' },
+          2: { start: '08:00', end: '17:00' },
+          3: { start: '08:00', end: '17:00' },
+          4: { start: '08:00', end: '17:00' },
+          5: { start: '08:00', end: '13:00' },
+        },
+        blockedDates: [],
+        slotDuration: 60,
+      };
     }
-    return db.availability;
-  },
-  removeBlockedDate(date) {
-    const db = load();
-    db.availability.blockedDates = db.availability.blockedDates.filter(b => b.date !== date);
-    save(db); return db.availability;
-  },
-
-  // ── Reminders ─────────────────────────────────────────────
-  getReminders() { return load().reminders; },
-  addReminder(r) { const db = load(); db.reminders.push(r); save(db); return r; },
-  updateReminder(id, updates) {
-    const db  = load();
-    const idx = db.reminders.findIndex(r => r.id === id);
-    if (idx !== -1) { db.reminders[idx] = { ...db.reminders[idx], ...updates }; save(db); }
-    return db.reminders[idx] || null;
+    return {
+      workingHours: data.working_hours,
+      blockedDates:  data.blocked_dates || [],
+      slotDuration:  data.slot_duration || 60,
+    };
   },
 
-  // ── Audit log ─────────────────────────────────────────────
-  addAuditLog(entry) {
-    const db = load();
-    db.auditLogs.push({ ...entry, createdAt: new Date().toISOString() });
-    save(db);
-  },
-  getAuditLogs(filters = {}) {
-    let logs = load().auditLogs;
-    if (filters.patientId) logs = logs.filter(l => l.patientId === filters.patientId);
-    if (filters.action)    logs = logs.filter(l => l.action === filters.action);
-    return logs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  async updateAvailability(updates) {
+    const row = {
+      working_hours: updates.workingHours,
+      slot_duration: updates.slotDuration,
+    };
+    await q(
+      db.from('availability').upsert({ id: 1, ...row }),
+      'updateAvailability'
+    );
+    return this.getAvailability();
   },
 
-  // ── Security events ───────────────────────────────────────
-  addSecurityEvent(event) {
-    const db = load(); db.securityEvents.push(event); save(db);
+  async addBlockedDate(date, reason = '') {
+    const current = await this.getAvailability();
+    const blocked  = current.blockedDates.filter(b => b.date !== date);
+    blocked.push({ date, reason });
+    await q(
+      db.from('availability').upsert({ id: 1, blocked_dates: blocked }),
+      'addBlockedDate'
+    );
+    return this.getAvailability();
   },
-  getSecurityEvents() {
-    return load().securityEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  async removeBlockedDate(date) {
+    const current = await this.getAvailability();
+    const blocked  = current.blockedDates.filter(b => b.date !== date);
+    await q(
+      db.from('availability').upsert({ id: 1, blocked_dates: blocked }),
+      'removeBlockedDate'
+    );
+    return this.getAvailability();
+  },
+
+  // ══ REMINDERS ═══════════════════════════════════════════════════════════════
+
+  async getReminders() {
+    const data = await q(
+      db.from('reminders').select('*').eq('status', 'pending'),
+      'getReminders'
+    );
+    return (data || []).map(camelCase);
+  },
+
+  async addReminder(reminder) {
+    const data = await q(
+      db.from('reminders').insert(snakeCase(reminder)).select().single(),
+      'addReminder'
+    );
+    return camelCase(data);
+  },
+
+  async updateReminder(id, updates) {
+    const data = await q(
+      db.from('reminders').update(snakeCase(updates)).eq('id', id).select().single(),
+      'updateReminder'
+    );
+    return data ? camelCase(data) : null;
+  },
+
+  // ══ AUDIT LOG ════════════════════════════════════════════════════════════════
+
+  async addAuditLog(entry) {
+    await q(
+      db.from('audit_logs').insert({
+        ...snakeCase(entry),
+        created_at: new Date().toISOString(),
+      }),
+      'addAuditLog'
+    ).catch(err => console.error('[store] audit log failed:', err.message));
+  },
+
+  async getAuditLogs(filters = {}) {
+    let query = db.from('audit_logs').select('*');
+    if (filters.patientId) query = query.eq('patient_id', filters.patientId);
+    if (filters.action)    query = query.eq('action', filters.action);
+    const data = await q(query.order('created_at', { ascending: false }).limit(200), 'getAuditLogs');
+    return (data || []).map(camelCase);
+  },
+
+  // ══ SECURITY EVENTS ══════════════════════════════════════════════════════════
+
+  async addSecurityEvent(event) {
+    await q(
+      db.from('security_events').insert(snakeCase(event)),
+      'addSecurityEvent'
+    ).catch(err => console.error('[store] security event failed:', err.message));
+  },
+
+  async getSecurityEvents() {
+    const data = await q(
+      db.from('security_events').select('*').order('timestamp', { ascending: false }).limit(100),
+      'getSecurityEvents'
+    );
+    return (data || []).map(camelCase);
   },
 };
+
+// ── Column name converters ────────────────────────────────────────────────────
+function snakeCase(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const snake = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    result[snake] = value;
+  }
+  return result;
+}
+
+function camelCase(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const camel = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    result[camel] = value;
+  }
+  return result;
+}
 
 module.exports = store;
