@@ -120,32 +120,46 @@ function reminderHtml(appt, hoursAhead) {
 }
 
 async function sendEmail({ to, subject, html, label }) {
+  // Prefer Resend (HTTP API) — works on Render free tier since SMTP ports are blocked there.
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from:    process.env.EMAIL_FROM || 'Nontobeko Ngcobo <onboarding@resend.dev>',
+          to:      [to],
+          subject,
+          html,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(`[email] ${label} → ${to} (via Resend)`);
+        return;
+      }
+      console.error(`[email] ${label} failed via Resend:`, data.message || JSON.stringify(data));
+    } catch (err) {
+      console.error(`[email] ${label} Resend error:`, err.message);
+    }
+    return;
+  }
+
+  // Fallback to SMTP if Resend isn't configured (works locally / on non-Render hosts)
   if (!process.env.SMTP_USER) {
-    console.log(`[email] SMTP not configured — skipping ${label}`);
+    console.log(`[email] No email provider configured — skipping ${label}`);
     return;
   }
   try {
     const transport = createTransport();
-    await transport.verify(); // test connection first
+    await transport.verify();
     await transport.sendMail({ from: process.env.EMAIL_FROM, to, subject, html });
-    console.log(`[email] ${label} → ${to}`);
+    console.log(`[email] ${label} → ${to} (via SMTP)`);
   } catch (err) {
-    console.error(`[email] ${label} failed:`, err.message);
-    // Retry once with port 587 if 465 failed
-    if (err.message.includes('timeout') || err.message.includes('ECONNREFUSED')) {
-      try {
-        console.log(`[email] Retrying ${label} with fallback settings...`);
-        const fallback = nodemailer.createTransport({
-          host: 'smtp.gmail.com', port: 587, secure: false,
-          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-          connectionTimeout: 30_000,
-        });
-        await fallback.sendMail({ from: process.env.EMAIL_FROM, to, subject, html });
-        console.log(`[email] ${label} retry succeeded → ${to}`);
-      } catch (err2) {
-        console.error(`[email] ${label} retry failed:`, err2.message);
-      }
-    }
+    console.error(`[email] ${label} failed via SMTP:`, err.message);
   }
 }
 

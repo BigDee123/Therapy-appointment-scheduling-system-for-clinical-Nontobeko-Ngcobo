@@ -61,6 +61,8 @@ const store = {
   },
 
   async deleteAppointment(id) {
+    // Delete dependent reminders first to satisfy the foreign key constraint
+    await q(db.from('reminders').delete().eq('appointment_id', id), 'deleteAppointment-reminders');
     await q(db.from('appointments').delete().eq('id', id), 'deleteAppointment');
     return true;
   },
@@ -100,6 +102,7 @@ const store = {
 
   async upsertPatient(patient) {
     const row = snakeCase(patient);
+    delete row.id; // never overwrite the primary key of an existing row
     // Try to find existing by email
     const existing = await q(
       db.from('patients').select('*').eq('email', patient.email.toLowerCase()).maybeSingle(),
@@ -114,7 +117,7 @@ const store = {
       return camelCase(updated);
     }
     const created = await q(
-      db.from('patients').insert({ ...row, created_at: new Date().toISOString() })
+      db.from('patients').insert({ ...row, id: patient.id, created_at: new Date().toISOString() })
         .select().single(),
       'upsertPatient-insert'
     );
