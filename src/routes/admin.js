@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const store  = require('../data/store');
 const popia  = require('../popia/compliance');
 const { requireAuth }                    = require('../middleware/auth');
-const { sendCancellationEmail, sendRescheduleEmail } = require('../services/notifications');
+const { sendCancellationEmail, sendRescheduleEmail, sendNoShowEmail } = require('../services/notifications');
 const { createCalendarEvent, cancelCalendarEvent }   = require('../services/calendar');
 
 router.post('/login', async (req, res) => {
@@ -70,6 +70,9 @@ router.patch('/appointments/:id', async (req, res) => {
       if (status === 'cancelled') {
         await sendCancellationEmail({ ...existing, ...updates });
         if (existing.googleEventId) await cancelCalendarEvent(existing.googleEventId);
+      }
+      if (status === 'no-show') {
+        await sendNoShowEmail({ ...existing, ...updates });
       }
       if (startTime && startTime !== existing.startTime) {
         const merged = { ...existing, ...updates, notes: notes || popia.decrypt(existing.notes) };
@@ -184,5 +187,191 @@ router.get('/popia/consents', async (_req, res) => {
   try { res.json({ consents: await store.getAllConsentRecords() }); }
   catch (err) { res.status(500).json({ error: 'Failed.' }); }
 });
+
+// ── Invoices ───────────────────────────────────────────────────────────────────
+router.get('/invoices', async (req, res) => {
+  try {
+    const invoices = await store.getInvoices(req.query);
+    res.json({ invoices, total: invoices.length });
+  } catch (err) { res.status(500).json({ error: 'Failed to load invoices.' }); }
+});
+
+router.get('/invoices/next-number', async (_req, res) => {
+  try { res.json({ invoiceNumber: await store.getNextInvoiceNumber() }); }
+  catch (err) { res.status(500).json({ error: 'Failed.' }); }
+});
+
+router.get('/invoices/:id', async (req, res) => {
+  try {
+    const invoice = await store.getInvoiceById(req.params.id);
+    if (!invoice) return res.status(404).json({ error: 'Not found.' });
+    res.json(invoice);
+  } catch (err) { res.status(500).json({ error: 'Failed.' }); }
+});
+
+router.post('/invoices', async (req, res) => {
+  const { v4: uuidv4 } = require('uuid');
+  const {
+    appointmentId, patientId, patientName, patientDob, patientIdNo, patientContact,
+    paymentType, medicalAidName, medicalAidNo, lineItems, invoiceDate,
+  } = req.body;
+
+  if (!patientName?.trim())         return res.status(422).json({ error: 'Patient name is required.' });
+  if (!Array.isArray(lineItems) || !lineItems.length)
+                                     return res.status(422).json({ error: 'At least one line item is required.' });
+
+  try {
+    const invoiceNumber = await store.getNextInvoiceNumber();
+    const total = lineItems.reduce((sum, li) => sum + (Number(li.total) || 0), 0);
+
+    const invoice = await store.createInvoice({
+      id:              uuidv4(),
+      invoiceNumber,
+      appointmentId:   appointmentId || null,
+      patientId:       patientId || null,
+      patientName:     patientName.trim(),
+      patientDob:      patientDob || null,
+      patientIdNo:     patientIdNo || null,
+      patientContact:  patientContact || null,
+      paymentType:     paymentType || 'cash',
+      medicalAidName:  paymentType === 'medical-aid' ? (medicalAidName || null) : null,
+      medicalAidNo:    paymentType === 'medical-aid' ? (medicalAidNo   || null) : null,
+      lineItems,
+      total,
+      invoiceDate:     invoiceDate || new Date().toISOString().split('T')[0],
+      createdBy:       req.admin.email,
+      createdAt:       new Date().toISOString(),
+    });
+
+    await store.addAuditLog({
+      action: 'INVOICE_CREATED', appointmentId: appointmentId || null,
+      patientId: patientId || null, performedBy: req.admin.email,
+      detail: `Invoice ${invoiceNumber} created — total R${total.toFixed(2)}`,
+    });
+
+    res.status(201).json(invoice);
+  } catch (err) {
+    console.error('[invoices] create error:', err.message);
+    res.status(500).json({ error: 'Failed to create invoice.' });
+  }
+});
+
+// Printable invoice — opens in browser, patient/admin can print → Save as PDF
+router.get('/invoices/:id/print', async (req, res) => {
+  try {
+    const invoice = await store.getInvoiceById(req.params.id);
+    if (!invoice) return res.status(404).send('Invoice not found.');
+    res.send(renderInvoiceHtml(invoice));
+  } catch (err) { res.status(500).send('Failed to render invoice.'); }
+});
+
+function renderInvoiceHtml(inv) {
+  const PRACTICE = {
+    name:    process.env.PRACTICE_NAME    || 'Nontobeko Ngcobo',
+    phone:   process.env.PRACTICE_PHONE   || '0843090111',
+    email:   process.env.PRACTICE_EMAIL   || 'nontobekorn@gmail.com',
+    address: process.env.PRACTICE_ADDRESS || 'Akeso Milnerton | Belhar 37 Organ Street',
+    hpcsa:   process.env.PRACTICE_HPCSA_NO || '0157120',
+    practiceNo: process.env.PRACTICE_NUMBER || '1196871',
+    bankName: process.env.PRACTICE_BANK_NAME || 'Standard Bank',
+    bankAcc:  process.env.PRACTICE_BANK_ACCOUNT || '10117278279',
+    bankAccType: process.env.PRACTICE_BANK_ACC_TYPE || 'Current',
+    bankBranch:  process.env.PRACTICE_BANK_BRANCH || '003326',
+  };
+  const fmtDate = (d) => new Date(d).toLocaleDateString('en-ZA', { day: '2-digit', month: 'long', year: 'numeric' });
+  const rows = (inv.lineItems || []).map(li => `
+    <tr>
+      <td>${esc(li.rxDate || inv.invoiceDate)}</td>
+      <td>${esc(PRACTICE.name)}<br><span style="color:#888;font-size:11px">${esc(PRACTICE.hpcsa)}</span></td>
+      <td>${esc(li.icd10 || '')}</td>
+      <td>${esc(li.tariffCode || '')}</td>
+      <td>R ${Number(li.fee || 0).toFixed(2)}</td>
+      <td>R ${Number(li.total || 0).toFixed(2)}</td>
+    </tr>`).join('');
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${esc(inv.invoiceNumber)}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Helvetica Neue',Arial,sans-serif}
+body{background:#fff;color:#111;padding:40px;max-width:880px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px}
+.top h1{font-size:32px;font-weight:800;letter-spacing:1px}
+.top .date{font-size:13px;color:#555;margin-top:6px}
+.contact{text-align:right;font-size:13px;color:#333;line-height:1.6}
+.contact strong{display:block;margin-bottom:4px}
+.practice-meta{text-align:right;font-size:12px;color:#444;margin-top:10px;line-height:1.6}
+.cols{display:flex;justify-content:space-between;margin:28px 0;gap:30px}
+.col h3{font-size:13px;font-weight:700;margin-bottom:8px}
+.col p{font-size:13px;color:#222;line-height:1.7}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th{background:#f3f3f3;border:1px solid #ddd;padding:10px;font-size:12px;text-align:left}
+td{border:1px solid #ddd;padding:10px;font-size:13px}
+.total-box{display:flex;justify-content:flex-end;margin-top:20px}
+.total-box div{background:#f3f3f3;border:1px solid #ccc;padding:12px 24px;font-weight:700;font-size:15px}
+.bank{margin-top:40px;font-size:12px;color:#333;line-height:1.8}
+.bank strong{font-weight:700}
+.practice-no{margin-top:30px;font-size:13px;font-weight:700}
+@media print{.no-print{display:none}}
+.no-print{text-align:center;margin-top:30px}
+.no-print button{padding:10px 24px;border:none;border-radius:6px;background:#1D9E75;color:#fff;font-size:14px;cursor:pointer}
+</style></head><body>
+<div class="top">
+  <div>
+    <h1>INVOICE</h1>
+    <div class="date">Date: ${fmtDate(inv.invoiceDate)}</div>
+    <div class="date">Invoice #: ${esc(inv.invoiceNumber)}</div>
+  </div>
+  <div>
+    <div class="contact">
+      <strong>Contact details</strong>
+      Tel: ${esc(PRACTICE.phone)}<br>
+      Email: ${esc(PRACTICE.email)}<br>
+      ${esc(PRACTICE.address)}
+    </div>
+    <div class="practice-meta">
+      Practice number: ${esc(PRACTICE.practiceNo)}<br>
+      HPCSA: ${esc(PRACTICE.hpcsa)}
+    </div>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="col">
+    <h3>Bill to:</h3>
+    ${inv.paymentType === 'medical-aid' ? `
+      <p>Medical aid: ${esc(inv.medicalAidName || '—')}</p>
+      <p>Medical aid number: ${esc(inv.medicalAidNo || '—')}</p>
+    ` : `<p>Payment method: Cash / EFT</p>`}
+  </div>
+  <div class="col">
+    <h3>Patient information</h3>
+    <p>Patient name: ${esc(inv.patientName)}</p>
+    ${inv.patientDob ? `<p>Date of birth: ${esc(inv.patientDob)}</p>` : ''}
+    ${inv.patientIdNo ? `<p>ID number: ${esc(inv.patientIdNo)}</p>` : ''}
+    ${inv.patientContact ? `<p>Contact details: ${esc(inv.patientContact)}</p>` : ''}
+  </div>
+</div>
+
+<table>
+  <thead><tr><th>Rx Date</th><th>Practitioner</th><th>ICD 10 Code</th><th>Tariff code</th><th>Consultation fee</th><th>Total</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+
+<div class="total-box"><div>Total: R ${Number(inv.total || 0).toFixed(2)}</div></div>
+
+<div class="practice-no">PRACTICE NUMBER ${esc(PRACTICE.practiceNo)}</div>
+
+<div class="bank">
+  <strong>Bank:</strong> ${esc(PRACTICE.bankName)}<br>
+  <strong>Account Number:</strong> ${esc(PRACTICE.bankAcc)}<br>
+  <strong>Account Type:</strong> ${esc(PRACTICE.bankAccType)}<br>
+  <strong>Branch Code:</strong> ${esc(PRACTICE.bankBranch)}<br>
+  Reference: ${esc(inv.patientName)}
+</div>
+
+<div class="no-print"><button onclick="window.print()">Print / Save as PDF</button></div>
+</body></html>`;
+}
+
+function esc(str) { return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 module.exports = router;

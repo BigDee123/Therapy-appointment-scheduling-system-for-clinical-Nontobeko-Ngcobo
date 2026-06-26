@@ -23,6 +23,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .header-links{display:flex;gap:16px}
 .header-links a{color:rgba(255,255,255,.75);font-size:13px;text-decoration:none}
 .header-links a:hover{color:#fff}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;flex-direction:column;gap:4px;z-index:101}
+.hamburger span{width:22px;height:2px;background:#fff;border-radius:2px;transition:all .2s}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;top:64px;right:0;background:var(--gd);box-shadow:-2px 4px 16px rgba(0,0,0,.2);border-radius:0 0 0 12px;z-index:99;min-width:200px;overflow:hidden}
+.mobile-menu.open{display:block}
+.mobile-menu a{display:block;padding:14px 20px;font-size:14px;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}
+.mobile-menu a:last-child{border:none}
+.mobile-menu a:hover{background:rgba(255,255,255,.08)}
+@media(max-width:600px){
+  .header-links{display:none}
+  .hamburger{display:flex}
+}
 .container{max-width:660px;margin:0 auto;padding:40px 20px 80px}
 .hero{text-align:center;margin-bottom:36px}
 .hero h1{font-family:'Playfair Display',serif;font-size:30px;font-weight:400;color:var(--gd);margin-bottom:10px}
@@ -157,7 +171,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
     <a href="/rights.html">My Rights</a>
     <a href="tel:0843090111">📞 084 309 0111</a>
   </div>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
 </header>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/privacy.html">Privacy Notice</a>
+  <a href="/rights.html">My Rights</a>
+  <a href="tel:0843090111">📞 084 309 0111</a>
+</div>
 
 <div class="container">
   <div class="hero">
@@ -480,6 +500,11 @@ function resetForm(){
   toStep(1);
 }
 renderCal();
+
+function toggleMobileMenu(){
+  document.getElementById('hamburgerBtn').classList.toggle('open');
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
 </script>
 </body>
 </html>

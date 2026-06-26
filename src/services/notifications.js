@@ -38,9 +38,13 @@ function fmtTime(iso) {
   });
 }
 function modeText(appt) {
-  return appt.sessionMode === 'virtual'
-    ? 'Virtual session (link will be sent 30 minutes before)'
-    : `In-person – ${PRACTICE.address}`;
+  if (appt.sessionMode === 'virtual') {
+    const link = process.env.TEAMS_MEETING_LINK;
+    return link
+      ? `Virtual session — join via Microsoft Teams: <a href="${link}" style="color:#1D9E75">${link}</a>`
+      : 'Virtual session (link will be sent before your appointment)';
+  }
+  return `In-person – ${PRACTICE.address}`;
 }
 
 function emailShell(headerColor, title, bodyHtml) {
@@ -119,6 +123,28 @@ function reminderHtml(appt, hoursAhead) {
     </p>`);
 }
 
+function noShowHtml(appt) {
+  return emailShell('#92400e', 'Missed Appointment', `
+    <p style="margin:0 0 18px">Dear <strong>${appt.patientName}</strong>, we noted you were unable to attend your scheduled appointment.</p>
+    <div class="row"><span class="lbl">Service</span><span class="val">${appt.serviceType}</span></div>
+    <div class="row"><span class="lbl">Was scheduled</span><span class="val">${fmtFull(appt.startTime)}</span></div>
+    <div class="row"><span class="lbl">Reference</span><span class="val">${appt.id.slice(0,8).toUpperCase()}</span></div>
+    <p style="margin:18px 0 0;font-size:13px;color:#666">
+      If you'd like to rebook, please contact us:<br>
+      📞 ${PRACTICE.phone} &nbsp;|&nbsp; ✉️ ${PRACTICE.email}
+    </p>`);
+}
+
+// Strips accidental quotes/whitespace from EMAIL_FROM and falls back to a known-good
+// address if the configured one doesn't match the required "Name <email>" or "email" format.
+function getSafeFromAddress() {
+  const raw = (process.env.EMAIL_FROM || '').trim().replace(/^["']|["']$/g, '');
+  const validPattern = /^([^<>]+<\S+@\S+\.\S+>|\S+@\S+\.\S+)$/;
+  if (raw && validPattern.test(raw)) return raw;
+  if (raw) console.warn(`[email] EMAIL_FROM "${raw}" is not in a valid format — falling back to default sender`);
+  return 'Nontobeko Ngcobo <onboarding@resend.dev>';
+}
+
 async function sendEmail({ to, subject, html, label }) {
   // Prefer Resend (HTTP API) — works on Render free tier since SMTP ports are blocked there.
   if (process.env.RESEND_API_KEY) {
@@ -130,7 +156,7 @@ async function sendEmail({ to, subject, html, label }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from:    process.env.EMAIL_FROM || 'Nontobeko Ngcobo <onboarding@resend.dev>',
+          from:    getSafeFromAddress(),
           to:      [to],
           subject,
           html,
@@ -194,6 +220,9 @@ async function sendRescheduleEmail(appt) {
 async function sendReminderEmail(appt, hoursAhead) {
   await sendEmail({ to: appt.patientEmail, subject: `Reminder: appointment ${hoursAhead === 24 ? 'tomorrow' : 'in 2 hours'} – ${fmtTime(appt.startTime)}`, html: reminderHtml(appt, hoursAhead), label: `${hoursAhead}h reminder` });
 }
+async function sendNoShowEmail(appt) {
+  await sendEmail({ to: appt.patientEmail, subject: `Missed appointment – ${appt.serviceType}`, html: noShowHtml(appt), label: 'no-show notice' });
+}
 async function sendConfirmationWhatsApp(appt) {
   await sendWhatsApp(appt.patientMobile, `Hello ${appt.patientName},\n\nYour appointment with *Nontobeko Ngcobo* has been confirmed ✅\n\n📅 *Date & Time:* ${fmtFull(appt.startTime)}\n🩺 *Service:* ${appt.serviceType}\n📍 *Mode:* ${appt.sessionMode === 'virtual' ? 'Virtual session' : PRACTICE.address}\n🔖 *Ref:* ${appt.id.slice(0,8).toUpperCase()}\n\nTo reschedule or cancel, please contact us at least 24 hours in advance:\n📞 ${PRACTICE.phone}\n\nThank you.`);
 }
@@ -204,5 +233,5 @@ async function sendReminderWhatsApp(appt, hoursAhead) {
 
 module.exports = {
   sendConfirmationEmail, sendCancellationEmail, sendRescheduleEmail,
-  sendReminderEmail, sendConfirmationWhatsApp, sendReminderWhatsApp,
+  sendReminderEmail, sendNoShowEmail, sendConfirmationWhatsApp, sendReminderWhatsApp,
 };

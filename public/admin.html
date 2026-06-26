@@ -22,16 +22,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .lb:hover{background:var(--gd)}
 #loginErr{color:var(--rd);font-size:13px;margin-top:10px;text-align:center}
 #app{display:none}
-.topbar{background:var(--wh);border-bottom:1px solid var(--bd);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50}
-.tb-brand{display:flex;align-items:center;gap:8px}
-.tb-dot{width:9px;height:9px;border-radius:50%;background:var(--gm)}
+
+/* ── Topbar with logo + hamburger ── */
+.topbar{background:var(--wh);border-bottom:1px solid var(--bd);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:60}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.tb-logo{width:32px;height:32px;border-radius:50%;background:var(--gd);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;letter-spacing:-.5px;flex-shrink:0}
 .tb-name{font-size:15px;font-weight:500}
 .tb-right{display:flex;align-items:center;gap:16px}
 .tb-right a{font-size:13px;color:var(--mt);text-decoration:none;cursor:pointer}
 .tb-right a:hover{color:var(--gm)}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;flex-direction:column;gap:4px}
+.hamburger span{width:22px;height:2px;background:var(--tx);border-radius:2px;transition:all .2s}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;top:58px;right:0;background:var(--wh);box-shadow:-2px 4px 16px rgba(0,0,0,.12);border-radius:0 0 0 12px;z-index:55;min-width:200px;overflow:hidden}
+.mobile-menu.open{display:block}
+.mobile-menu a{display:block;padding:14px 20px;font-size:14px;color:var(--tx);text-decoration:none;border-bottom:1px solid var(--bd)}
+.mobile-menu a:last-child{border:none}
+.mobile-menu a:hover{background:var(--bg)}
+
 .main{max-width:1120px;margin:0 auto;padding:24px 20px 60px}
-.tabs{display:flex;gap:2px;margin-bottom:22px;border-bottom:2px solid var(--bd)}
-.tab{padding:10px 18px;font-size:14px;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--mt);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tabs{display:flex;gap:2px;margin-bottom:22px;border-bottom:2px solid var(--bd);overflow-x:auto}
+.tab{padding:10px 18px;font-size:14px;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--mt);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
 .tab.active{color:var(--gm);border-bottom-color:var(--gm);font-weight:500}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
 .stat{background:var(--wh);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
@@ -50,7 +63,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .bsm.green{background:var(--gm);color:#fff;border-color:var(--gm)}
 .bsm.green:hover{background:var(--gd)}
 .bsm.red{background:var(--rd);color:#fff;border-color:var(--rd)}
-.tw{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.tw{background:var(--wh);border-radius:var(--r);box-shadow:var(--sh);overflow-x:auto}
 table{width:100%;border-collapse:collapse}
 thead th{background:#f3f4f6;padding:10px 13px;text-align:left;font-size:12px;font-weight:500;color:var(--mt);white-space:nowrap}
 tbody tr{border-top:1px solid var(--bd);transition:background .1s}
@@ -61,7 +74,7 @@ tbody td{padding:11px 13px;font-size:13px}
 .badge.cancelled{background:var(--rdl);color:var(--rd)}
 .badge.no-show{background:var(--aml);color:var(--am)}
 .badge.pending{background:var(--bll);color:var(--bl)}
-.ab{background:none;border:1px solid var(--bd);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;color:var(--mt);font-family:inherit;margin-left:3px;transition:all .12s}
+.ab{background:none;border:1px solid var(--bd);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;color:var(--mt);font-family:inherit;margin-left:3px;transition:all .12s;white-space:nowrap}
 .ab:hover{border-color:var(--gm);color:var(--gm)}
 .ab.del:hover{border-color:var(--rd);color:var(--rd)}
 .pg-title{font-size:19px;font-weight:500;margin-bottom:4px}
@@ -86,7 +99,36 @@ tbody td{padding:11px 13px;font-size:13px}
 .pstat-row:last-child{border:none}
 .pstat-row .pk{color:var(--mt)}
 .pstat-row .pv{font-weight:500}
-@media(max-width:640px){.main{padding:14px 12px}table{font-size:12px}.stats{grid-template-columns:1fr 1fr}}
+
+/* ── Modal (invoice generator) ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--wh);border-radius:14px;max-width:640px;width:100%;padding:26px;margin-top:10px}
+.modal h2{font-size:18px;font-weight:500;margin-bottom:4px;color:var(--gd)}
+.modal .msub{font-size:13px;color:var(--mt);margin-bottom:18px}
+.mfield{margin-bottom:13px}
+.mfield label{display:block;font-size:12px;color:var(--mt);margin-bottom:5px}
+.mfield input,.mfield select,.mfield textarea{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;font-size:13px;font-family:inherit;outline:none}
+.mfield input:focus,.mfield select:focus{border-color:var(--gm)}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.line-item{display:grid;grid-template-columns:1fr 1fr 1fr 90px 90px 30px;gap:6px;margin-bottom:8px;align-items:end}
+.line-item input{width:100%;padding:7px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;font-family:inherit}
+.li-del{background:none;border:none;color:var(--rd);cursor:pointer;font-size:16px}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions button{flex:1}
+.total-preview{text-align:right;font-size:15px;font-weight:600;margin-top:6px;color:var(--gd)}
+@media(max-width:640px){
+  .line-item{grid-template-columns:1fr 1fr;gap:6px}
+  .line-item label{display:block;font-size:10px;color:var(--mt)}
+}
+
+@media(max-width:780px){
+  .tb-right{display:none}
+  .hamburger{display:flex}
+  .main{padding:14px 12px}
+  table{font-size:12px}
+  .stats{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -107,17 +149,25 @@ tbody td{padding:11px 13px;font-size:13px}
 
 <div id="app">
   <div class="topbar">
-    <div class="tb-brand"><div class="tb-dot"></div><span class="tb-name">Booking Admin</span></div>
+    <div class="tb-brand"><div class="tb-logo">NN</div><span class="tb-name">Booking Admin</span></div>
     <div class="tb-right">
       <a href="/" target="_blank">Patient portal ↗</a>
       <a href="/privacy.html" target="_blank">Privacy notice</a>
       <a onclick="logout()">Sign out</a>
     </div>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()"><span></span><span></span><span></span></button>
   </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="/" target="_blank">Patient portal ↗</a>
+    <a href="/privacy.html" target="_blank">Privacy notice</a>
+    <a onclick="logout()">Sign out</a>
+  </div>
+
   <div class="main">
     <div class="tabs">
       <button class="tab active" onclick="showTab('appts',this)">Appointments</button>
       <button class="tab" onclick="showTab('patients',this)">Patients</button>
+      <button class="tab" onclick="showTab('invoices',this)">Invoices</button>
       <button class="tab" onclick="showTab('avail',this)">Availability</button>
       <button class="tab" onclick="showTab('popia',this)">POPIA &amp; Audit</button>
     </div>
@@ -158,6 +208,22 @@ tbody td{padding:11px 13px;font-size:13px}
         <table>
           <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Consent given</th><th>Registered</th><th>Actions</th></tr></thead>
           <tbody id="ptBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Invoices -->
+    <div id="tab-invoices" style="display:none">
+      <div class="pg-title">Invoices</div>
+      <div class="pg-sub">Generate and view patient invoices — cash or medical aid.</div>
+      <div class="toolbar">
+        <input type="text" id="invSearch" placeholder="Search by patient name or invoice number…" oninput="loadInvoices()">
+        <button class="bsm green" onclick="openInvoiceModal()">+ New invoice</button>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Invoice #</th><th>Patient</th><th>Date</th><th>Payment</th><th>Total</th><th>Actions</th></tr></thead>
+          <tbody id="invBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -207,9 +273,52 @@ tbody td{padding:11px 13px;font-size:13px}
   </div>
 </div>
 
+<!-- Invoice generator modal -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal">
+    <h2>New invoice</h2>
+    <div class="msub">Pre-filled from appointment where available — edit anything before generating.</div>
+
+    <div class="mrow">
+      <div class="mfield"><label>Patient name *</label><input type="text" id="inv-name"></div>
+      <div class="mfield"><label>Invoice date</label><input type="date" id="inv-date"></div>
+    </div>
+    <div class="mrow">
+      <div class="mfield"><label>Date of birth</label><input type="text" id="inv-dob" placeholder="DD/MM/YYYY"></div>
+      <div class="mfield"><label>ID number</label><input type="text" id="inv-idno"></div>
+    </div>
+    <div class="mfield"><label>Contact details</label><input type="text" id="inv-contact" placeholder="082 000 0000"></div>
+
+    <div class="mfield">
+      <label>Payment type</label>
+      <select id="inv-paytype" onchange="toggleMedicalAidFields()">
+        <option value="cash">Cash / EFT</option>
+        <option value="medical-aid">Medical Aid</option>
+      </select>
+    </div>
+    <div class="mrow" id="medicalAidFields" style="display:none">
+      <div class="mfield"><label>Medical aid name</label><input type="text" id="inv-aidname" placeholder="e.g. Bonitas"></div>
+      <div class="mfield"><label>Medical aid number</label><input type="text" id="inv-aidno"></div>
+    </div>
+
+    <div style="margin-top:16px;margin-bottom:8px;font-size:13px;font-weight:500;color:var(--gd)">Line items</div>
+    <div id="lineItems"></div>
+    <button class="bsm" onclick="addLineItem()" style="margin-top:4px">+ Add line item</button>
+
+    <div class="total-preview" id="totalPreview">Total: R 0.00</div>
+
+    <div class="modal-actions">
+      <button class="bsm" onclick="closeInvoiceModal()">Cancel</button>
+      <button class="bsm green" onclick="submitInvoice()">Generate invoice</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let token = localStorage.getItem('admin_token')||'';
 const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+let liCounter = 0;
+let invoiceContext = null; // appointment/patient prefill data, if opened from an appointment row
 
 async function doLogin(){
   const email=document.getElementById('loginEmail').value;
@@ -226,6 +335,11 @@ function logout(){token='';localStorage.removeItem('admin_token');location.reloa
 function showApp(){document.getElementById('loginScreen').style.display='none';document.getElementById('app').style.display='block';loadAppts();}
 if(token) showApp();
 
+function toggleMobileMenu(){
+  document.getElementById('hamburgerBtn').classList.toggle('open');
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
 async function api(method,path,body){
   const h={'Content-Type':'application/json'};
   if(token) h['Authorization']='Bearer '+token;
@@ -235,12 +349,15 @@ async function api(method,path,body){
 }
 
 function showTab(name,el){
-  ['appts','patients','avail','popia'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
+  ['appts','patients','invoices','avail','popia'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  if(name==='patients') loadPatients();
-  if(name==='avail')    loadAvailability();
-  if(name==='popia')    loadPopiaDashboard();
+  if(name==='patients')  loadPatients();
+  if(name==='invoices')  loadInvoices();
+  if(name==='avail')     loadAvailability();
+  if(name==='popia')     loadPopiaDashboard();
+  document.getElementById('mobileMenu').classList.remove('open');
+  document.getElementById('hamburgerBtn').classList.remove('open');
 }
 
 // ── Appointments ──────────────────────────────────────────────────────────────
@@ -267,7 +384,9 @@ function renderStats(list){
   `;
 }
 
+let lastApptList = [];
 function renderAppts(list){
+  lastApptList = list;
   const tb=document.getElementById('apptBody');
   if(!list.length){tb.innerHTML='<tr><td colspan="7" class="empty">No appointments found.</td></tr>';return;}
   tb.innerHTML=list.map(a=>`
@@ -281,13 +400,14 @@ function renderAppts(list){
       <td style="white-space:nowrap">
         ${a.status!=='cancelled'?`<button class="ab" onclick="setStatus('${a.id}','cancelled')">Cancel</button>`:''}
         <button class="ab" onclick="setStatus('${a.id}','no-show')">No-show</button>
+        <button class="ab" onclick="openInvoiceModal('${a.id}')">Invoice</button>
         <button class="ab del" onclick="delAppt('${a.id}')">Delete</button>
       </td>
     </tr>`).join('');
 }
 
 async function setStatus(id,status){
-  if(!confirm(`Mark as "${status}"?`)) return;
+  if(!confirm(`Mark as "${status}"? The patient will be notified by email.`)) return;
   const r=await api('PATCH',`/api/admin/appointments/${id}`,{status});
   if(r?.ok) loadAppts();
 }
@@ -339,6 +459,136 @@ async function viewPatient(id){
   const p=await r.json();
   const hist=p.appointmentHistory||[];
   alert(`Patient: ${p.fullName}\nEmail: ${p.email}\nMobile: ${p.mobile}\n\nAppointments (${hist.length}):\n${hist.map(a=>`• ${a.startTime?.split('T')[0]} – ${a.serviceType} [${a.status}]`).join('\n')||'None'}`);
+}
+
+// ── Invoices ──────────────────────────────────────────────────────────────────
+async function loadInvoices(){
+  const s=document.getElementById('invSearch').value;
+  const p=new URLSearchParams(); if(s) p.set('search',s);
+  const r=await api('GET','/api/admin/invoices?'+p);
+  if(!r) return;
+  const data=await r.json();
+  const tb=document.getElementById('invBody');
+  const list=data.invoices||[];
+  if(!list.length){tb.innerHTML='<tr><td colspan="6" class="empty">No invoices yet.</td></tr>';return;}
+  tb.innerHTML=list.map(inv=>`
+    <tr>
+      <td style="font-family:monospace;font-size:12px">${esc(inv.invoiceNumber)}</td>
+      <td style="font-weight:500">${esc(inv.patientName)}</td>
+      <td style="font-size:12px">${inv.invoiceDate||'—'}</td>
+      <td style="font-size:12px">${inv.paymentType==='medical-aid'?'🏥 '+esc(inv.medicalAidName||'Medical aid'):'💵 Cash/EFT'}</td>
+      <td style="font-weight:500">R ${Number(inv.total||0).toFixed(2)}</td>
+      <td><button class="ab" onclick="viewInvoice('${inv.id}')">View / Print</button></td>
+    </tr>`).join('');
+}
+
+function viewInvoice(id){
+  window.open(`/api/admin/invoices/${id}/print?token=${encodeURIComponent(token)}`, '_blank');
+}
+
+function openInvoiceModal(appointmentId){
+  invoiceContext = null;
+  document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('inv-name').value = '';
+  document.getElementById('inv-dob').value = '';
+  document.getElementById('inv-idno').value = '';
+  document.getElementById('inv-contact').value = '';
+  document.getElementById('inv-paytype').value = 'cash';
+  document.getElementById('inv-aidname').value = '';
+  document.getElementById('inv-aidno').value = '';
+  document.getElementById('lineItems').innerHTML = '';
+  liCounter = 0;
+  toggleMedicalAidFields();
+
+  if (appointmentId) {
+    const appt = lastApptList.find(a => a.id === appointmentId);
+    if (appt) {
+      invoiceContext = { appointmentId: appt.id, patientId: appt.patientId };
+      document.getElementById('inv-name').value = appt.patientName || '';
+      document.getElementById('inv-contact').value = appt.patientMobile || '';
+      addLineItem({
+        rxDate: appt.startTime?.split('T')[0] || '',
+        icd10: '', tariffCode: '', fee: '', total: '',
+        service: appt.serviceType || '',
+      });
+    }
+  }
+  if (!document.getElementById('lineItems').children.length) addLineItem();
+  document.getElementById('invoiceModal').classList.add('open');
+}
+function closeInvoiceModal(){ document.getElementById('invoiceModal').classList.remove('open'); }
+function toggleMedicalAidFields(){
+  document.getElementById('medicalAidFields').style.display =
+    document.getElementById('inv-paytype').value === 'medical-aid' ? 'grid' : 'none';
+}
+
+function addLineItem(prefill){
+  const id = 'li-' + (liCounter++);
+  const p = prefill || {};
+  const div = document.createElement('div');
+  div.className = 'line-item';
+  div.id = id;
+  div.innerHTML = `
+    <div><label>Rx date</label><input type="date" class="li-date" value="${p.rxDate||''}"></div>
+    <div><label>ICD-10 code</label><input type="text" class="li-icd" placeholder="F41.1" value="${p.icd10||''}"></div>
+    <div><label>Tariff code</label><input type="text" class="li-tariff" placeholder="86205" value="${p.tariffCode||''}"></div>
+    <div><label>Fee (R)</label><input type="number" class="li-fee" placeholder="1300" step="0.01" value="${p.fee||''}" oninput="syncLineTotal('${id}')"></div>
+    <div><label>Total (R)</label><input type="number" class="li-total" step="0.01" value="${p.total||''}" oninput="updateTotalPreview()"></div>
+    <button class="li-del" onclick="document.getElementById('${id}').remove();updateTotalPreview()">×</button>
+  `;
+  document.getElementById('lineItems').appendChild(div);
+  updateTotalPreview();
+}
+function syncLineTotal(id){
+  const row = document.getElementById(id);
+  const fee = parseFloat(row.querySelector('.li-fee').value) || 0;
+  row.querySelector('.li-total').value = fee.toFixed(2);
+  updateTotalPreview();
+}
+function updateTotalPreview(){
+  let total = 0;
+  document.querySelectorAll('.li-total').forEach(el => total += parseFloat(el.value) || 0);
+  document.getElementById('totalPreview').textContent = `Total: R ${total.toFixed(2)}`;
+}
+
+async function submitInvoice(){
+  const name = document.getElementById('inv-name').value.trim();
+  if (!name) { alert('Patient name is required.'); return; }
+
+  const lineItems = [];
+  document.querySelectorAll('.line-item').forEach(row => {
+    lineItems.push({
+      rxDate:     row.querySelector('.li-date').value,
+      icd10:      row.querySelector('.li-icd').value,
+      tariffCode: row.querySelector('.li-tariff').value,
+      fee:        parseFloat(row.querySelector('.li-fee').value) || 0,
+      total:      parseFloat(row.querySelector('.li-total').value) || 0,
+    });
+  });
+  if (!lineItems.length) { alert('Add at least one line item.'); return; }
+
+  const body = {
+    appointmentId:  invoiceContext?.appointmentId || null,
+    patientId:      invoiceContext?.patientId || null,
+    patientName:    name,
+    patientDob:     document.getElementById('inv-dob').value,
+    patientIdNo:    document.getElementById('inv-idno').value,
+    patientContact: document.getElementById('inv-contact').value,
+    paymentType:    document.getElementById('inv-paytype').value,
+    medicalAidName: document.getElementById('inv-aidname').value,
+    medicalAidNo:   document.getElementById('inv-aidno').value,
+    invoiceDate:    document.getElementById('inv-date').value,
+    lineItems,
+  };
+
+  const r = await api('POST', '/api/admin/invoices', body);
+  if (!r) return;
+  const data = await r.json();
+  if (!r.ok) { alert(data.error || 'Failed to create invoice.'); return; }
+  closeInvoiceModal();
+  loadInvoices();
+  showTab('invoices', document.querySelector('.tab:nth-child(3)'));
+  window.open(`/api/admin/invoices/${data.id}/print?token=${encodeURIComponent(token)}`, '_blank');
 }
 
 // ── Availability ──────────────────────────────────────────────────────────────

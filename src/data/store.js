@@ -299,6 +299,44 @@ const store = {
     );
     return (data || []).map(camelCase);
   },
+
+  // ══ INVOICES ════════════════════════════════════════════════════════════════
+
+  async getInvoices(filters = {}) {
+    let query = db.from('invoices').select('*');
+    if (filters.patientId) query = query.eq('patient_id', filters.patientId);
+    if (filters.search) {
+      query = query.or(`patient_name.ilike.%${filters.search}%,invoice_number.ilike.%${filters.search}%`);
+    }
+    const data = await q(query.order('created_at', { ascending: false }), 'getInvoices');
+    return (data || []).map(camelCase);
+  },
+
+  async getInvoiceById(id) {
+    const data = await q(
+      db.from('invoices').select('*').eq('id', id).maybeSingle(),
+      'getInvoiceById'
+    );
+    return data ? camelCase(data) : null;
+  },
+
+  async createInvoice(invoice) {
+    const data = await q(
+      db.from('invoices').insert(snakeCase(invoice)).select().single(),
+      'createInvoice'
+    );
+    return camelCase(data);
+  },
+
+  async getNextInvoiceNumber() {
+    const data = await q(
+      db.from('invoices').select('invoice_number').order('created_at', { ascending: false }).limit(1),
+      'getNextInvoiceNumber'
+    );
+    const last = data?.[0]?.invoice_number;
+    const lastNum = last ? parseInt(last.replace(/\D/g, ''), 10) || 0 : 0;
+    return `INV-${String(lastNum + 1).padStart(4, '0')}`;
+  },
 };
 
 // ── Column name converters ────────────────────────────────────────────────────
