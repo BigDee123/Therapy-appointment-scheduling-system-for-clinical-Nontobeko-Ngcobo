@@ -137,16 +137,84 @@ function noShowHtml(appt) {
 
 // Strips accidental quotes/whitespace from EMAIL_FROM and falls back to a known-good
 // address if the configured one doesn't match the required "Name <email>" or "email" format.
-function getSafeFromAddress() {
+function getSafeFromAddress(fallback) {
   const raw = (process.env.EMAIL_FROM || '').trim().replace(/^["']|["']$/g, '');
   const validPattern = /^([^<>]+<\S+@\S+\.\S+>|\S+@\S+\.\S+)$/;
   if (raw && validPattern.test(raw)) return raw;
   if (raw) console.warn(`[email] EMAIL_FROM "${raw}" is not in a valid format — falling back to default sender`);
-  return 'Nontobeko Ngcobo <onboarding@resend.dev>';
+  return fallback;
+}
+
+function parseFromAddress(fromString) {
+  const match = fromString.match(/^(.*)<(.+)>$/);
+  if (match) return { name: match[1].trim(), email: match[2].trim() };
+  return { name: 'Nontobeko Ngcobo', email: fromString.trim() };
 }
 
 async function sendEmail({ to, subject, html, label }) {
-  // Prefer Resend (HTTP API) — works on Render free tier since SMTP ports are blocked there.
+  // ── SendGrid (HTTP API) — free tier sends to ANY recipient once a single
+  // sender email is verified. No domain required. ──
+  if (process.env.SENDGRID_API_KEY) {
+    try {
+      const from = parseFromAddress(getSafeFromAddress('Nontobeko Ngcobo <' + (process.env.SMTP_USER || 'noreply@example.com') + '>'));
+      const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email: to }] }],
+          from:    { name: from.name, email: from.email },
+          subject,
+          content: [{ type: 'text/html', value: html }],
+        }),
+      });
+      if (res.ok || res.status === 202) {
+        console.log(`[email] ${label} → ${to} (via SendGrid)`);
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      console.error(`[email] ${label} failed via SendGrid:`, data.errors?.map(e => e.message).join('; ') || res.status);
+    } catch (err) {
+      console.error(`[email] ${label} SendGrid error:`, err.message);
+    }
+    return;
+  }
+
+  // ── Brevo (HTTP API) — free tier sends to ANY recipient immediately,
+  // no domain verification required, just your Gmail/any email as the sender. ──
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const from = parseFromAddress(getSafeFromAddress('Nontobeko Ngcobo <' + (process.env.SMTP_USER || 'noreply@example.com') + '>'));
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key':       process.env.BREVO_API_KEY,
+          'Content-Type':  'application/json',
+          'Accept':        'application/json',
+        },
+        body: JSON.stringify({
+          sender:      { name: from.name, email: from.email },
+          to:          [{ email: to }],
+          subject,
+          htmlContent: html,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(`[email] ${label} → ${to} (via Brevo)`);
+        return;
+      }
+      console.error(`[email] ${label} failed via Brevo:`, data.message || JSON.stringify(data));
+    } catch (err) {
+      console.error(`[email] ${label} Brevo error:`, err.message);
+    }
+    return;
+  }
+
+  // ── Resend (HTTP API) — works on Render free tier, but free plan only allows
+  // sending to your own verified email unless a domain is verified. ──
   if (process.env.RESEND_API_KEY) {
     try {
       const res = await fetch('https://api.resend.com/emails', {
@@ -156,7 +224,7 @@ async function sendEmail({ to, subject, html, label }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from:    getSafeFromAddress(),
+          from:    getSafeFromAddress('Nontobeko Ngcobo <onboarding@resend.dev>'),
           to:      [to],
           subject,
           html,
@@ -174,7 +242,8 @@ async function sendEmail({ to, subject, html, label }) {
     return;
   }
 
-  // Fallback to SMTP if Resend isn't configured (works locally / on non-Render hosts)
+  // ── Fallback to raw SMTP if no HTTP provider is configured — works locally /
+  // on non-Render hosts where SMTP ports aren't blocked. ──
   if (!process.env.SMTP_USER) {
     console.log(`[email] No email provider configured — skipping ${label}`);
     return;
