@@ -32,7 +32,7 @@ router.get('/privacy-notice', (_req, res) => {
     responsibleParty: {
       name:    process.env.PRACTICE_NAME    || 'Nontobeko Ngcobo – Clinical Psychologist',
       address: process.env.PRACTICE_ADDRESS || 'Simla Medical Centre, Belhar, Cape Town',
-      email:   process.env.PRACTICE_EMAIL   || 'nontobekorn@gmail.com',
+      email:   process.env.PRACTICE_EMAIL   || 'nontopsychology@outlook.com',
       phone:   process.env.PRACTICE_PHONE   || '0843090111',
     },
     informationOfficer: {

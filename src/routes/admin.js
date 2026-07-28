@@ -269,7 +269,7 @@ function renderInvoiceHtml(inv) {
   const PRACTICE = {
     name:    process.env.PRACTICE_NAME    || 'Nontobeko Ngcobo',
     phone:   process.env.PRACTICE_PHONE   || '0843090111',
-    email:   process.env.PRACTICE_EMAIL   || 'nontobekorn@gmail.com',
+    email:   process.env.PRACTICE_EMAIL   || 'nontopsychology@outlook.com',
     address: process.env.PRACTICE_ADDRESS || 'Akeso Milnerton | Belhar 37 Organ Street',
     hpcsa:   process.env.PRACTICE_HPCSA_NO || '0157120',
     practiceNo: process.env.PRACTICE_NUMBER || '1196871',
