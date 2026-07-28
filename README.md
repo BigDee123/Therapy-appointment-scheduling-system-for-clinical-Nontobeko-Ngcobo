@@ -47,14 +47,14 @@ A fully POPIA-compliant appointment booking system for a clinical psychologist p
 NODE_ENV            → production
 JWT_SECRET          → (go to https://passwordsgenerator.net, set 64 chars, click Generate)
 ENCRYPTION_KEY      → (generate ANOTHER different 64-char string)
-ADMIN_EMAIL         → nontobeko@simlamedical.co.za
+ADMIN_EMAIL         → nontopsychology@outlook.com
 ADMIN_PASSWORD      → (choose a strong password — you will use this to log into /admin.html)
 PRACTICE_NAME       → Nontobeko Ngcobo – Clinical Psychologist
 PRACTICE_PHONE      → 0843090111
 PRACTICE_ADDRESS    → Simla Medical Centre, Belhar, Cape Town
-PRACTICE_EMAIL      → nontobekorn@gmail.com
+PRACTICE_EMAIL      → nontopsychology@outlook.com
 INFO_OFFICER_NAME   → Nontobeko Ngcobo
-INFO_OFFICER_EMAIL  → nontobekorn@gmail.com
+INFO_OFFICER_EMAIL  → nontopsychology@outlook.com
 ```
 
 6. Click **Create Web Service**
