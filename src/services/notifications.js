@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 const PRACTICE = {
   name:    process.env.PRACTICE_NAME    || 'Nontobeko Ngcobo – Clinical Psychologist',
   phone:   process.env.PRACTICE_PHONE   || '0843090111',
-  email:   process.env.PRACTICE_EMAIL   || 'nontobekorn@gmail.com',
+  email:   process.env.PRACTICE_EMAIL   || 'nontopsychology@outlook.com',
   address: process.env.PRACTICE_ADDRESS || 'Simla Medical Centre, Belhar, Cape Town',
 };
 
